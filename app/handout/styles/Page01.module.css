@@ -1,0 +1,17 @@
+.page :global(.sectionHeading) > h2 { margin-bottom: 3mm; }
+
+.page :global(.goalGrid) { margin: 3mm 0; gap: 3mm; }
+
+.page :global(.goalGrid) article { min-height: 27mm; padding-top: 8px; padding-bottom: 8px; }
+
+.page :global(.inlineSectionTitle) { margin: 3mm 0 2mm; padding-top: 3mm; }
+
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page :global(.folder) { margin: 3mm 0; }
+
+.page :global(.folderTitle) { padding: 7px 12px; }
+
+.page :global(.folder) li { padding: 5px 12px; }
+
+.page :global(.prompt) { margin: 3mm 0; }

@@ -1,0 +1,10 @@
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page :global(.prompt),
+.page :global(.miniTemplate) { margin: 3mm 0; }
+
+.page :global(.checks) li { padding-top: 5px; padding-bottom: 5px; }
+
+.page :global(.writeBox) { min-height: 34mm; }
+
+.page :global(.writeBox) span { height: 7.5mm; }

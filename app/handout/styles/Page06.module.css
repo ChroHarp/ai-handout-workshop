@@ -1,0 +1,31 @@
+.page :global(.sectionHeading) > h2 { margin: 0 0 3mm; }
+
+.page :global(.prompt) { margin: 2mm 0; }
+
+.page :global(.prompt) p { padding: 7px 10px; line-height: 1.4; }
+
+.page > h3 { margin-top: 2mm; margin-bottom: 1mm; }
+
+.page :global(.checks) { margin: 1mm 0 2mm; }
+
+.page :global(.checks) li { padding-top: 3px; padding-bottom: 3px; line-height: 1.35; }
+
+.page :global(.worksheetTable) { margin: 2mm 0; }
+
+.page :global(.worksheetTable) th { padding-top: 5px; padding-bottom: 5px; }
+
+.page :global(.worksheetTable) td {
+  height: 11mm;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.page :global(.writeBox) { min-height: 34mm; padding: 10px 12px; }
+
+.page :global(.writeBox) strong { margin-bottom: 4px; }
+
+.page :global(.writeBox) span { height: 7.5mm; }
+
+.page :global(.callout) { margin: 2mm 0 0; padding-top: 8px; padding-bottom: 8px; }
+
+.page :global(.callout) div { line-height: 1.45; }

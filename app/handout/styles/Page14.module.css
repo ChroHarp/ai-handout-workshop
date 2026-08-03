@@ -1,0 +1,13 @@
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page table { margin: 3mm 0; }
+
+.page td { height: 15mm; padding-top: 5px; padding-bottom: 5px; }
+
+.page :global(.agentFilter) { margin-top: 4mm; padding: 3mm 5mm; }
+
+.page :global(.checks) li { padding-top: 5px; padding-bottom: 5px; }
+
+.page :global(.writeBox) { min-height: 28mm; }
+
+.page :global(.writeBox) span { height: 5mm; }

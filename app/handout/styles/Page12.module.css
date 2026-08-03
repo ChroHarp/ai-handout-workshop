@@ -1,0 +1,7 @@
+.page :global(.imageFrame) { margin: 2mm 0 3mm; }
+
+.page :global(.imageFrame) img { height: 68mm; }
+
+.page :global(.steps) > li { padding-top: 2.5mm; padding-bottom: 2.5mm; margin-bottom: 1.5mm; }
+
+.page :global(.steps) > li::before { top: 2.5mm; }

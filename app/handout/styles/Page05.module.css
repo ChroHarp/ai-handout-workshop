@@ -1,0 +1,25 @@
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page :global(.twoCols) { margin: 3mm 0; }
+
+.page :global(.card) { padding: 9px 10px; }
+
+.page :global(.card) ol { margin: 2mm 0 0; padding-left: 6mm; }
+
+.page :global(.card) li { line-height: 1.4; }
+
+.page :global(.prompt) { margin: 3mm 0; }
+
+.page :global(.prompt) p { padding-top: 8px; padding-bottom: 8px; line-height: 1.5; }
+
+.page :global(.inlineSectionTitle) { margin: 2mm 0 1.5mm; padding-top: 2mm; }
+
+.page :global(.handoutTable) { margin: 1.5mm 0 0; }
+
+.page :global(.handoutTable) th { padding-top: 5px; padding-bottom: 5px; }
+
+.page :global(.handoutTable) td {
+  height: 18mm;
+  padding: 4px 6px;
+  vertical-align: middle;
+}

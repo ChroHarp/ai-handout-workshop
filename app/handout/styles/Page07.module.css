@@ -1,0 +1,19 @@
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page :global(.twoCols) { margin: 3mm 0; }
+
+.page :global(.card) { padding: 9px 10px; }
+
+.page :global(.twoCols .card) {
+  min-height: 36mm;
+}
+
+.page :global(.slideMap) { gap: 2mm; }
+
+.page :global(.slideMap) article { min-height: 19mm; padding-top: 7px; padding-bottom: 6px; }
+
+.page :global(.slideMap) article > b { top: 7px; }
+
+.page :global(.prompt) { margin: 3mm 0; }
+
+.page :global(.prompt) p { padding-top: 9px; padding-bottom: 9px; }

@@ -1,0 +1,25 @@
+.page :global(.lead) { margin-bottom: 3mm; }
+
+.page :global(.interactionExample) { margin: 2mm 0 3mm; }
+
+.page :global(.controlMock) { height: 42mm; }
+
+.page :global(.prompt) { margin: 3mm 0; }
+
+.page :global(.prompt) p { padding-top: 9px; padding-bottom: 9px; }
+
+.page :global(.fiveQuestions) { gap: 2mm; }
+
+.page :global(.fiveQuestions):global(.compactCards) article { min-height: 23mm; padding: 6px 8px; }
+
+.page :global(.inlineSectionTitle) { margin: 2mm 0 1.5mm; padding-top: 2mm; }
+
+.page :global(.inlineSectionTitle) + :global(.lead) { margin-bottom: 1.5mm; line-height: 1.45; white-space: nowrap; }
+
+.page :global(.inlineSectionTitle) + :global(.lead) + :global(.prompt) { margin: 1.5mm 0 0; }
+
+.page :global(.inlineSectionTitle) + :global(.lead) + :global(.prompt) p { padding-top: 7px; padding-bottom: 7px; line-height: 1.55; }
+
+@media (max-width: 900px) {
+  .page :global(.inlineSectionTitle) + :global(.lead) { white-space: normal; }
+}

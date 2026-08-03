@@ -1,0 +1,8 @@
+.page :global(.formGrid .writeBox) span {
+  height: 9.1mm;
+}
+
+.page :global(.callout) {
+  margin-top: 2mm;
+  margin-bottom: 2mm;
+}
