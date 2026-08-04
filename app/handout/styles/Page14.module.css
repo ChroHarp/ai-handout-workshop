@@ -8,6 +8,6 @@
 
 .page :global(.checks) li { padding-top: 5px; padding-bottom: 5px; }
 
-.page :global(.writeBox) { min-height: 28mm; }
+.page :global(.writeBox) { min-height: 56mm; }
 
-.page :global(.writeBox) span { height: 5mm; }
+.page :global(.writeBox) span { height: 10mm; }

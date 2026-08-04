@@ -1,10 +1,9 @@
-import { Page, Label, Prompt } from "../components";
+import { Page, Label, Prompt, WriteBox } from "../components";
 import styles from "../styles/Page10.module.css";
 
 export default function Page10() {
   return (
-<Page pageId="p10" id="step4" step="STEP 4" title="將互動內容做成網頁並傳送到 Netlify" className={`stepBreak ${styles.page}`}>
-          <p className="lead">HTML 簡報生成後，隆老師發現其中「調整光源、物體位置與角度」的步驟，不容易只靠幾張圖片說清楚。於是他請 AI 在簡報中加入一個互動頁面，直接呈現實際操作時會發生的變化。</p>
+<Page pageId="p10" step="STEP 4｜互動頁面規格" title="從光影案例規劃互動頁面" className={styles.page}>
           <div className="interactionExample">
             <div className="controlMock">
               <div className="lightDot" />
@@ -39,6 +38,7 @@ export default function Page10() {
           <Prompt>
             請在簡報的第［頁次／主題］頁插入一個互動頁面。互動主題是［要呈現的現象或關係］。畫面包含［物件與標示］；使用者可以用［拖曳／滑桿／按鈕／點選］調整［可改變的條件］，畫面中的［結果］要立即跟著改變。加入［重設、切換視角或其他控制］，並支援滑鼠、觸控與鍵盤。請先說明頁面配置與操作方式，等我確認後再修改簡報。
           </Prompt>
+          <WriteBox title="我的單一互動：概念、動作、變化與回饋" lines={4} />
         </Page>
   );
 }

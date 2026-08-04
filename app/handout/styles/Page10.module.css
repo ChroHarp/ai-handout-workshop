@@ -20,6 +20,15 @@
 
 .page :global(.inlineSectionTitle) + :global(.lead) + :global(.prompt) p { padding-top: 7px; padding-bottom: 7px; line-height: 1.55; }
 
+.page :global(.writeBox) {
+  min-height: 37.5mm;
+  margin-top: 2mm;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.page :global(.writeBox) span { height: 6.75mm; }
+
 @media (max-width: 900px) {
   .page :global(.inlineSectionTitle) + :global(.lead) { white-space: normal; }
 }

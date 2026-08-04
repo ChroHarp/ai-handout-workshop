@@ -1,6 +1,3 @@
-.page :global(.writeBox) { min-height: 25mm; }
-
-.page :global(.writeBox) span { height: 4.5mm; }
 
 .page :global(.imageFrame) { margin: 2mm 0 3mm; }
 

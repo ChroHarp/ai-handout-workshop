@@ -20,6 +20,8 @@ export default function Page09() {
             <div className="miniTemplate"><h3>常見錯誤</h3><p>瀏覽器顯示程式文字：檔案副檔名錯誤。圖片破圖：路徑或檔名不一致。按鈕無反應：請 AI 檢查主控台錯誤。</p></div>
             <div className="miniTemplate"><h3>修正描述</h3><p>「第 4 頁下一頁按鈕無反應；期待點擊後到第 5 頁。請找出原因，修改後回傳完整 index.html。」</p></div>
           </div>
+          <h2 id="step4" className="inlineSectionTitle">將互動內容做成網頁並傳送到 Netlify</h2>
+          <p className="lead">HTML 簡報生成後，隆老師發現其中「調整光源、物體位置與角度」的步驟，不容易只靠幾張圖片說清楚。於是他請 AI 在簡報中加入一個互動頁面，直接呈現實際操作時會發生的變化。</p>
         </Page>
   );
 }

@@ -1,10 +1,9 @@
-import { Page, Callout, WriteBox } from "../components";
+import { Page, Callout } from "../components";
 import styles from "../styles/Page11.module.css";
 
 export default function Page11() {
   return (
 <Page pageId="p11" step="STEP 4｜互動與上線" title="完成互動規格並登入 Netlify" className={styles.page}>
-          <WriteBox title="我的單一互動：概念、動作、變化與回饋" lines={4} />
           <div className="imageFrame">
             <img src="/assets/netlify-signup.jpg" alt="Netlify 註冊頁面，提供 Google、GitHub、GitLab、Bitbucket 與電子郵件選項" />
             <p>實際畫面｜Netlify 註冊頁（2026 年 7 月）</p>
