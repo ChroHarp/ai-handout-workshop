@@ -1,7 +1,55 @@
-.page :global(.imageFrame) { margin: 2mm 0 3mm; }
+.page :global(.sectionHeading > h2) {
+  display: none;
+}
 
-.page :global(.imageFrame) img { height: 68mm; }
+.continuedSteps {
+  margin: 0 0 4mm;
+}
 
-.page :global(.steps) > li { padding-top: 2.5mm; padding-bottom: 2.5mm; margin-bottom: 1.5mm; }
+.maintenanceColumns {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: 6mm;
+  align-items: start;
+  margin: 3mm 0 4mm;
+}
 
-.page :global(.steps) > li::before { top: 2.5mm; }
+.maintenanceColumns section > h3 {
+  margin-bottom: 2mm;
+}
+
+.page :global(.steps) > li {
+  min-height: 0;
+  padding-top: 2mm;
+  padding-bottom: 2mm;
+  margin-bottom: 1.2mm;
+}
+
+.page :global(.steps) > li::before { top: 2mm; }
+
+.page :global(.trouble) {
+  margin-bottom: 0;
+}
+
+.page :global(.trouble) dt,
+.page :global(.trouble) dd {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 10pt;
+  line-height: 1.35;
+}
+
+.page :global(.callout) {
+  margin: 2mm 0 1mm;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.page :global(.sourceNote) {
+  margin-bottom: 0;
+  font-size: 10pt;
+}
+
+@media (max-width: 900px) {
+  .maintenanceColumns { grid-template-columns: 1fr; }
+}

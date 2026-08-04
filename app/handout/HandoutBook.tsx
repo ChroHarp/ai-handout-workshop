@@ -14,7 +14,7 @@ import Page09 from "./pages/Page09";
 import Page10 from "./pages/Page10";
 import Page11 from "./pages/Page11";
 import Page12 from "./pages/Page12";
-import Page13 from "./pages/Page13";
+
 import Page14 from "./pages/Page14";
 import Page15 from "./pages/Page15";
 
@@ -75,7 +75,7 @@ export default function HandoutBook() {
         <Page10 />
         <Page11 />
         <Page12 />
-        <Page13 />
+
         <Page14 />
         <Page15 />
       </main>

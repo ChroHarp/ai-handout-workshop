@@ -5,12 +5,12 @@ export default function Page01() {
   return (
 <Page pageId="p01" id="start" step="START" title="教學目標" className={styles.page}>
           <h3>完成研習後，你能夠</h3>
-          <div className="goalGrid">
-            <article><b>01</b><h3>討論課程規劃</h3><p>運用 AI 蒐集資料、整理需求，從模糊構想逐步形成可行的課程方向。</p></article>
-            <article><b>02</b><h3>產出學習文件</h3><p>依課程規劃製作講義與學習單，讓內容、活動與學習證據互相對應。</p></article>
-            <article><b>03</b><h3>建立 HTML 簡報</h3><p>把講義內容轉換成適合投影、分頁呈現與課堂引導的 HTML 簡報。</p></article>
-            <article><b>04</b><h3>加入互動並上線</h3><p>在簡報中加入一個互動頁面，完成測試、部署，並認識後續延伸方式。</p></article>
-          </div>
+          <ol className="steps blueprintGrid">
+            <li><b>討論課程規劃</b><p>運用 AI 蒐集資料、整理需求，從模糊構想逐步形成可行的課程方向。</p></li>
+            <li><b>產出學習文件</b><p>依課程規劃製作講義與學習單，讓內容、活動與學習證據互相對應。</p></li>
+            <li><b>建立 HTML 簡報</b><p>把講義內容轉換成適合投影、分頁呈現與課堂引導的 HTML 簡報。</p></li>
+            <li><b>加入互動並上線</b><p>在簡報中加入一個互動頁面，完成測試、部署，並認識後續延伸方式。</p></li>
+          </ol>
           <h2 className="inlineSectionTitle">從初步構想到資料蒐集</h2>
           <p className="lead">
             隆老師接到暑期 SEL 資優營隊的邀約。他雖然有 SEL 的基本概念，但對於課程還不熟悉，於是開始與 AI 助理討論如何設計課程。

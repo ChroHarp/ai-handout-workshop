@@ -43,11 +43,11 @@ test("keeps the handout as fixed A4 sheets with the agreed Step 4 order", async 
   );
   const html = await response.text();
 
-  assert.equal((html.match(/class="[^"]*\bsheet\b/g) ?? []).length, 16);
+  assert.equal((html.match(/class="[^"]*\bsheet\b/g) ?? []).length, 15);
   assert.doesNotMatch(html, /printBreak/);
 
   const pageIds = [...html.matchAll(/data-page=\"([^\"]+)\"/g)].map((match) => match[1]);
-  assert.deepEqual(pageIds, ["cover", "p01", "p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15"]);
+  assert.deepEqual(pageIds, ["cover", "p01", "p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p14", "p15"]);
 
   const page09 = html.indexOf('data-page="p09"');
   const page10 = html.indexOf('data-page="p10"');
@@ -59,9 +59,16 @@ test("keeps the handout as fixed A4 sheets with the agreed Step 4 order", async 
   const template = html.indexOf("請在簡報的第［頁次／主題］頁插入一個互動頁面");
   const specification = html.indexOf("我的單一互動：概念、動作、變化與回饋");
   const netlify = html.indexOf("完成互動規格並登入 Netlify");
+  const firstDeploy = html.indexOf("第一次拖放部署：從資料夾取得網址");
+  const deployStep3 = html.indexOf("打開 Drop");
+  const deployStep5 = html.indexOf("線上驗收");
+  const page14 = html.indexOf('data-page="p14"');
+  const maintenance = html.indexOf("網站有改動時，整包重新部署");
 
   assert.ok(page09 < scenario && scenario < page10);
   assert.ok(page10 < examplePrompt && examplePrompt < fiveCards);
   assert.ok(fiveCards < template && template < specification && specification < page11);
-  assert.ok(page11 < netlify && netlify < page12);
+  assert.ok(page11 < netlify && netlify < firstDeploy && firstDeploy < page12);
+  assert.ok(page12 < deployStep3 && deployStep3 < deployStep5);
+  assert.ok(deployStep5 < maintenance && maintenance < page14);
 });

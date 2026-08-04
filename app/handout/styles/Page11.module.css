@@ -1,10 +1,59 @@
+.signupLayout {
+  display: grid;
+  grid-template-columns: 65mm minmax(0, 1fr);
+  gap: 4mm;
+  align-items: start;
+  margin: 2mm 0 3mm;
+}
 
-.page :global(.imageFrame) { margin: 2mm 0 3mm; }
+.signupCrop {
+  margin: 0;
+  overflow: hidden;
+}
 
-.page :global(.imageFrame) img { height: 58mm; }
+.signupCrop img {
+  width: 200%;
+  max-width: none;
+  height: auto;
+  object-fit: unset;
+  object-position: unset;
+}
+
+.signupCrop p {
+  position: relative;
+  background: white;
+}
 
 .page :global(.steps) > li { padding-top: 2.5mm; padding-bottom: 2.5mm; margin-bottom: 1.5mm; }
 
 .page :global(.steps) > li::before { top: 2.5mm; }
 
 .page :global(.callout) { margin: 2mm 0 0; }
+
+.deployTitle {
+  margin: 4mm 0 2mm;
+  font-size: 17pt;
+}
+
+.dropCrop {
+  height: 46mm;
+  margin: 0 0 2mm;
+  overflow: hidden;
+}
+
+.dropCrop img {
+  width: 100%;
+  height: 39mm;
+  object-fit: cover;
+  object-position: center;
+}
+
+.dropCrop p {
+  position: relative;
+  background: white;
+}
+
+@media (max-width: 900px) {
+  .signupLayout { grid-template-columns: 1fr; }
+  .signupCrop { max-width: 320px; }
+}

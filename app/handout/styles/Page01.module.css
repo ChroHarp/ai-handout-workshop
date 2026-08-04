@@ -1,8 +1,5 @@
 .page :global(.sectionHeading) > h2 { margin-bottom: 3mm; }
 
-.page :global(.goalGrid) { margin: 3mm 0; gap: 3mm; }
-
-.page :global(.goalGrid) article { min-height: 27mm; padding-top: 8px; padding-bottom: 8px; }
 
 .page :global(.inlineSectionTitle) { margin: 3mm 0 2mm; padding-top: 3mm; }
 

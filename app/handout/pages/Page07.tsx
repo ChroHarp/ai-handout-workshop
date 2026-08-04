@@ -9,7 +9,7 @@ export default function Page07() {
             <article className="card"><Label>講義</Label><h3>適合閱讀與筆記</h3><p>保留較完整的知識說明、操作步驟與必要空間，讓讀者離開投影畫面後仍能理解。</p></article>
             <article className="card"><Label>簡報</Label><h3>配合教學節奏</h3><p>每頁聚焦少量訊息，依說明順序揭示內容，讓教師能控制觀看焦點與活動進度。</p></article>
           </div>
-          <div className="slideMap">
+          <ol className="steps blueprintGrid">
             {[
               ["01", "封面與驅動問題", "引起好奇"],
               ["02", "作品揭示", "先觀察再解釋"],
@@ -20,9 +20,9 @@ export default function Page07() {
               ["07", "安全與分享", "行動前提醒"],
               ["08", "反思與收束", "回到學習證據"],
             ].map(([n, title, role]) => (
-              <article key={n}><b>{n}</b><h3>{title}</h3><p>{role}</p></article>
+              <li key={n}><b>{title}</b><p>{role}</p></li>
             ))}
-          </div>
+          </ol>
           <Prompt
             title="光影奇航｜當時使用的提示語（整理版）"
             note="先看具體案例怎麼說"
