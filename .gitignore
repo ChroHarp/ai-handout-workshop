@@ -44,3 +44,4 @@ next-env.d.ts
 /.vinext/
 /_node_modules_incomplete_*/
 desktop.ini
+/.next-vercel/
