@@ -57,3 +57,10 @@
   .signupLayout { grid-template-columns: 1fr; }
   .signupCrop { max-width: 320px; }
 }
+
+@media print {
+  .signupLayout {
+    grid-template-columns: 65mm minmax(0, 1fr);
+  }
+  .signupCrop { max-width: none; }
+}

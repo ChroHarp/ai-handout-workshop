@@ -53,3 +53,7 @@
 @media (max-width: 900px) {
   .maintenanceColumns { grid-template-columns: 1fr; }
 }
+
+@media print {
+  .maintenanceColumns { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+}

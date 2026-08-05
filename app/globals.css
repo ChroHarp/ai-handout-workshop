@@ -378,6 +378,7 @@ td { height: 17mm; padding: 7px; border: 1px solid var(--line); vertical-align: 
     margin: 0;
   }
   .sheet.stepBreak {
+    margin-top: 0;
     padding-top: 10mm;
   }
   .sheet:last-child { page-break-after: auto; break-after: auto; }

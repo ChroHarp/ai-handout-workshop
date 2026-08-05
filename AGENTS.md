@@ -55,7 +55,9 @@
 ## Grid 的列印規則
 
 - A4 列印寬度可能命中螢幕版的窄版 media query，因此 `@media print` 必須明確恢復 `.twoCols`、`.caseGrid`、`.formGrid`、`.goalGrid`、`.slideMap` 等為 2 欄，`.threeCols`／`.fiveQuestions` 為 3 欄，`.revisionGrid` 為 4 欄。
+- 單頁 CSS Module 若有窄版單欄規則，也必須在較後方的 `@media print` 恢復原欄數；目前 P11 的 `.signupLayout` 與 P12 的 `.maintenanceColumns` 都依此處理。
 - 行動版可以塌成單欄，但列印版不得沿用行動版單欄規則。
+- `.sheet.stepBreak` 的窄版 `margin-top` 必須在列印模式歸零，否則固定 297mm 紙張會超出頁盒並產生空白頁。
 - 單張卡片不可被跨頁切開。
 - Grid 不得跨越 `.sheet`。若整組放不下，先縮減多餘 padding、margin 與固定高度；仍放不下時，才在 JSX 中以完整列為單位拆到下一頁。
 - 2×2 Grid 拆頁時以完整一列為單位；不可讓同一列的兩張卡片分到不同頁。
