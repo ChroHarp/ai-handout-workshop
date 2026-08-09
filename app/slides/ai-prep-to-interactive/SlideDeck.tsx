@@ -1,0 +1,154 @@
+"use client";
+
+import type { Slide } from "./types";
+import NetlifyPractice from "./NetlifyPractice";
+import { useDeckNavigation } from "./useDeckNavigation";
+import styles from "./deck.module.css";
+
+function Markdown({ html }: { html: string }) {
+  return (
+    <div
+      className={styles.markdown}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+function SlideMedia({ slide }: { slide: Slide }) {
+  if (slide.video) {
+    return (
+      <figure className={styles.figure}>
+        <video src={slide.video} controls muted playsInline preload="metadata" />
+        {slide.videoCaption ? <figcaption>{slide.videoCaption}</figcaption> : null}
+      </figure>
+    );
+  }
+
+  if (!slide.image) return null;
+
+  return (
+    <figure className={styles.figure}>
+      <img src={slide.image} alt={slide.imageAlt || ""} />
+      {slide.imageCaption ? <figcaption>{slide.imageCaption}</figcaption> : null}
+    </figure>
+  );
+}
+
+function SlideContent({ slide }: { slide: Slide }) {
+  const media = <SlideMedia slide={slide} />;
+
+  if (slide.layout === "cover" || slide.layout === "full-image") {
+    return (
+      <>
+        {media}
+        <div className={styles.overlay}>
+          {slide.eyebrow ? <p className={styles.eyebrow}>{slide.eyebrow}</p> : null}
+          <h1>{slide.title}</h1>
+          <Markdown html={slide.html} />
+        </div>
+      </>
+    );
+  }
+
+  if (slide.layout === "image-left" || slide.layout === "image-right") {
+    return (
+      <div className={styles.mediaLayout}>
+        {slide.layout === "image-left" ? media : null}
+        <Markdown html={slide.html} />
+        {slide.layout === "image-right" ? media : null}
+      </div>
+    );
+  }
+
+  if (slide.layout === "two-columns") {
+    return (
+      <div className={styles.columns}>
+        {slide.columns.map((column, columnIndex) => (
+          <Markdown key={columnIndex} html={column} />
+        ))}
+      </div>
+    );
+  }
+
+  if (slide.layout === "netlify-practice") {
+    return (
+      <div className={styles.practiceLayout}>
+        <Markdown html={slide.html} />
+        <NetlifyPractice
+          sourceLabel={slide.sourceLabel || ""}
+          targetLabel={slide.targetLabel || ""}
+          successMessage={slide.successMessage || ""}
+          resetLabel={slide.resetLabel || ""}
+        />
+      </div>
+    );
+  }
+
+  return <Markdown html={slide.html} />;
+}
+
+export default function SlideDeck({ slides }: { slides: Slide[] }) {
+  const { index, next, previous, touchHandlers } = useDeckNavigation(slides.length);
+  const slide = slides[index];
+
+  if (!slide) return null;
+
+  return (
+    <main
+      className={styles.stage}
+      data-layout={slide.layout}
+      data-accent={slide.accent}
+      {...touchHandlers}
+    >
+      <article
+        key={slide.fileName}
+        className={[
+          styles.slide,
+          styles[`layout${slide.layout
+            .split("-")
+            .map((part) => part[0].toUpperCase() + part.slice(1))
+            .join("")}`],
+          styles[slide.animation || "fade-up"],
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-labelledby="slide-title"
+      >
+        {slide.layout !== "cover" && slide.layout !== "full-image" ? (
+          <header className={styles.header}>
+            <div>
+              {slide.section ? <p className={styles.section}>{slide.section}</p> : null}
+              <h1 id="slide-title">{slide.title}</h1>
+            </div>
+            <span className={styles.number}>{slide.id}</span>
+          </header>
+        ) : null}
+        <div className={styles.body}>
+          <SlideContent slide={slide} />
+        </div>
+      </article>
+
+      <nav className={styles.controls}>
+        <button onClick={previous} disabled={index === 0} aria-label="上一張投影片">
+          ←
+        </button>
+        <button onClick={next} disabled={index === slides.length - 1} aria-label="下一張投影片">
+          →
+        </button>
+        <button
+          onClick={() => document.documentElement.requestFullscreen?.()}
+          aria-label="進入全螢幕"
+        >
+          ⛶
+        </button>
+      </nav>
+
+      <div className={styles.progress} aria-hidden="true">
+        <span style={{ width: `${((index + 1) / slides.length) * 100}%` }} />
+      </div>
+      <p className={styles.counter} aria-live="polite">
+        {index + 1} / {slides.length}
+      </p>
+    </main>
+  );
+}
