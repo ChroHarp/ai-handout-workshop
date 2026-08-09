@@ -46,7 +46,7 @@ export default function HandoutBook() {
   return (
     <>
       <nav className="topbar" aria-label="講義章節">
-        <a className="brand" href="#cover">
+        <a className="brand" href="/">
           AI 教材工作坊
         </a>
         <div className="navlinks">
