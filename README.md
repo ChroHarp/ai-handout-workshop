@@ -1,108 +1,124 @@
-# vinext-starter
+# AI 備課到互動教材｜HTML 簡報
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+這個專案使用「Markdown 內容分離方案」。投影片文字放在 `content/`，圖片放在 `public/images/`，影片放在 `public/videos/`；一般內容修訂不需要修改 TSX。
 
-## Prerequisites
+簡報網址：`/slides/ai-prep-to-interactive`
 
-- Node.js `>=22.13.0`
-- Linux with `flock`, `curl`, and GNU `timeout`
+## 修改投影片文字
 
-## Sites Lifecycle
+1. 打開 `content/`。
+2. 依編號找到投影片，例如 `14-student-documents.md`。
+3. 修改第二個 `---` 之後的 Markdown 文字。
+4. 儲存後回到瀏覽器，開發預覽會自動更新。
 
-The Sites lifecycle CLI runs the locked dependency install before returning this checkout. Edit the source under `app/`, then checkpoint when a coherent milestone is ready to inspect or share. The remote Sites builder runs `npm run build` against the pushed commit. Do not repeat install or build as a normal pre-checkpoint step.
+每張投影片的檔案開頭是 YAML front matter：
 
-This starter does not use `wrangler.jsonc`.
-
-`install:ci` is intentionally a single, non-retrying `npm ci`. It refuses a concurrent install for the same project, consumes a matching image-seeded npm cache with `--prefer-offline` while retaining registry fallback for a missing cache object, otherwise downloads and verifies the complete vinext tarball recorded in `package-lock.json`, limits npm to one socket, and terminates a stalled install. `build` applies a short timeout and then validates the Sites artifact. These helpers target Linux and use GNU `timeout`; they are not native macOS scripts.
-
-Scripts that need writable project-scoped home, npm, XDG, and temporary paths use `scripts/sites-env.sh`. The `dev` and `start` scripts honor the caller's runtime environment and keep Wrangler logs inside the checkout. The generated `.sites-runtime/` directory is disposable and ignored by Git.
-
-## Included Shape
-
-- edit site code under `app/`
-- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```yaml
+---
+title: 決定講義與工作頁
+layout: image-right
+section: Step 2｜製作講義與工作頁
+image: /images/ai-prep-to-interactive/scenario-student-documents.png
+imageAlt: 桌上放著學生講義、工作頁與光影操作材料
+accent: orange
+animation: slide-left
+---
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+所有會在投影片上看見的標題、正文、圖說與互動標籤，都應放在 Markdown 檔案，不要寫進 TSX。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## 插入或更換圖片
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+1. 把圖片放進 `public/images/ai-prep-to-interactive/`。
+2. 在投影片 front matter 設定圖片路徑：
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+```yaml
+image: /images/ai-prep-to-interactive/example.png
+imageAlt: 圖片內容說明
+imageCaption: 顯示在圖片下方的圖說
+```
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+教材截圖、示意圖與作品全貌應保留完整內容；情境照片才適合使用裁切式構圖。請勿把投影片正文直接生成在圖片內。
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+## 插入或更換影片
 
-## Diagnostic Commands
+1. 把影片放進 `public/videos/ai-prep-to-interactive/`。
+2. 在 front matter 設定：
 
-- `npm run install:ci`: perform the one bounded lockfile install
-- `npm run dev`: start the Vite/Vinext development server
-- `npm run build`: build and validate the deployable Sites artifact
-- `npm run start`: start the built Vinext application
-- `npm test`: build, validate, and verify the rendered development-preview metadata
-- `npm run validate:artifact`: recheck an existing artifact's manifest and ESM `default.fetch` export
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+```yaml
+video: /videos/ai-prep-to-interactive/example.webm
+videoCaption: 影片操作說明
+```
 
-Use build and validation commands for targeted diagnosis after a remote failure, not as part of the normal checkpoint path.
+設定 `video` 後，圖片欄位的位置會改為播放影片。
 
-The timeout defaults can be overridden for a controlled canary with `SITES_INSTALL_TIMEOUT`, `SITES_INSTALL_KILL_AFTER`, `SITES_BUILD_TIMEOUT`, and `SITES_BUILD_KILL_AFTER`. A timeout fails the command; the helpers never retry an unchanged install or build.
+## 新增、刪除與調整順序
 
-## Learn More
+- 新增：複製一個 `content/*.md`，修改內容與檔名編號。
+- 刪除：刪除對應的 Markdown 檔案。
+- 調整順序：修改檔名前兩碼，並保持從 `01` 開始連續編號。
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+目前共有 40 張投影片。調整數量後，請同步更新 `tests/slides-markdown.test.mjs` 的預期頁數。
+
+## 切換版型
+
+修改 front matter 的 `layout`：
+
+- `cover`：封面
+- `text`：一般文字
+- `bullets`：條列
+- `two-columns`：雙欄；用 `<!-- column -->` 分隔
+- `image-left`、`image-right`：圖文雙欄
+- `cards`：最多三欄的重點卡片
+- `table`：表格
+- `quote`：大型引言或短句
+- `prompt`：靠左對齊的完整提示語
+- `folder-tree`：專案資料夾層級
+- `full-image`：全版圖片與短句
+- `netlify-practice`：Netlify 資料夾拖曳練習
+
+畫面寬度低於 900px 時，雙欄、多欄與互動版型會自動改成單欄。
+
+## 在 Phoenix Code 啟動預覽
+
+1. 在 Phoenix Code 選擇「Open Folder」，開啟 `D:\Git\ai-handout-workshop`。
+2. 開啟內建 Terminal。
+3. 第一次使用先安裝套件：
+
+```powershell
+npm.cmd install
+```
+
+4. 啟動開發預覽：
+
+```powershell
+npm.cmd run dev
+```
+
+5. Terminal 會顯示本機網址，例如 `http://localhost:3000/`。在網址後加上：
+
+```text
+/slides/ai-prep-to-interactive
+```
+
+Windows PowerShell 若阻擋 `npm.ps1`，請使用本文件中的 `npm.cmd` 寫法。
+
+## 安裝、預覽與建置
+
+```powershell
+npm.cmd install
+npm.cmd run dev
+npm.cmd run build
+```
+
+- `npm.cmd install`：安裝相依套件。
+- `npm.cmd run dev`：啟動可即時更新的開發預覽。
+- `npm.cmd run build`：產生可部署的靜態網站至 `dist/`。
+- `npm.cmd test`：建置並檢查 40 張 Markdown、版型與媒體檔案。
+
+## Netlify 教學段落
+
+- 第 32–36 頁是五個逐步操作頁。
+- 第 34 頁是可重複練習的拖曳／點擊互動。
+- 第 35 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
+- 這段互動只模擬操作，不會登入 Netlify，也不會真的公開任何檔案。
