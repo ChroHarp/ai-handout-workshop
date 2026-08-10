@@ -25,10 +25,22 @@ layout: image-right
 image: /images/ai-prep-to-interactive/example.jpg
 imageAlt: 圖片的替代文字
 imageCaption: 顯示在圖片下方的圖說
+imageAspect: 3 / 2
+imageFit: cover
+imagePosition: center
 ---
 ```
 
 圖片檔名建議使用英文小寫與連字號。公開網站只應放可公開、已取得使用權的圖片；課程原始文件不要直接放進 `public/`。
+
+### 調整圖片比例與裁切
+
+- `imageAspect`：圖片框比例，例如正方形用 `1 / 1`、一般照片用 `3 / 2`、橫幅用 `16 / 9`。
+- `imageFit: cover`：填滿圖片框，邊緣可能被裁切，適合情境照片或插畫。
+- `imageFit: contain`：完整顯示圖片，可能留下空白，適合文件、教材、流程圖與介面截圖。
+- `imagePosition`：控制裁切焦點，例如 `center`、`left center`、`70% center`。
+
+生成新圖時，先看投影片圖片框比例，再要求 AI 使用相同比例，並把人物、文件與主要物件放在中央 80% 安全區。
 
 ## 新增、刪除與調整順序
 

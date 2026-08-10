@@ -106,8 +106,8 @@
   border-radius: 0 .7em .7em 0;
   color: #173750;
   background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,.88));
-  font-size: clamp(18px, 1.25vw, 23px);
-  line-height: 1.62;
+  font-size: clamp(22px, 1.58vw, 29px);
+  line-height: 1.58;
 }
 
 .markdown :global(.table-wrap) {
@@ -227,6 +227,26 @@
 .overlay .markdown :global(p) { max-width: 34ch; }
 .layoutFullImage .overlay { justify-content: flex-end; width: 74%; padding-bottom: 7%; }
 .layoutFullImage .overlay h1 { font-size: clamp(50px, 4.7vw, 84px); }
+.coverQr {
+  position: absolute;
+  right: 5.5%;
+  bottom: 6%;
+  z-index: 4;
+  width: clamp(128px, 11vw, 190px);
+  color: #0b2545;
+  text-decoration: none;
+}
+
+.coverQr figure {
+  margin: 0;
+  padding: .55em;
+  border-radius: .8em;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 12px 34px rgba(5,24,47,.28);
+}
+
+.coverQr img { width: 100%; height: auto; display: block; }
+ .coverQr figcaption { margin-top: .35em; font-size: clamp(14px, .95vw, 17px); font-weight: 800; line-height: 1.25; text-align: center; }
 
 .practiceLayout {
   height: 100%;
@@ -336,6 +356,7 @@
   .overlay h1 { font-size: clamp(60px, 14vw, 78px); }
   .layoutCover .figure::after,
   .layoutFullImage .figure::after { background: linear-gradient(0deg, rgba(5,24,47,.98) 0%, rgba(5,24,47,.64) 60%, rgba(5,24,47,.16) 100%); }
+  .coverQr { right: 7%; bottom: 2.5%; width: 118px; }
   .controls { opacity: .9; }
 }
 
@@ -389,8 +410,8 @@
   width: min(100%, 54ch);
   margin-inline: auto;
   padding: 1.05em 1.3em 1.05em 1.55em;
-  font-size: clamp(20px, 1.42vw, 26px);
-  line-height: 1.68;
+  font-size: clamp(22px, 1.58vw, 29px);
+  line-height: 1.58;
   text-align: left;
   text-wrap: pretty;
 }

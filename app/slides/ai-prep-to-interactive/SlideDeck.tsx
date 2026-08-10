@@ -27,8 +27,27 @@ function SlideMedia({ slide }: { slide: Slide }) {
   if (!slide.image) return null;
 
   return (
-    <figure className={styles.figure}>
-      <img src={slide.image} alt={slide.imageAlt || ""} />
+    <figure
+      className={styles.figure}
+      style={
+        slide.imageAspect
+          ? {
+              aspectRatio: slide.imageAspect,
+              height: "auto",
+              maxHeight: "100%",
+              justifySelf: "center",
+            }
+          : undefined
+      }
+    >
+      <img
+        src={slide.image}
+        alt={slide.imageAlt || ""}
+        style={{
+          objectFit: slide.imageFit || "cover",
+          objectPosition: slide.imagePosition || "center",
+        }}
+      />
       {slide.imageCaption ? <figcaption>{slide.imageCaption}</figcaption> : null}
     </figure>
   );
@@ -41,6 +60,19 @@ function SlideContent({ slide }: { slide: Slide }) {
     return (
       <>
         {media}
+        {slide.qrImage ? (
+          <a
+            className={styles.coverQr}
+            href={slide.qrLink || "#"}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <figure>
+              <img src={slide.qrImage} alt={slide.qrAlt || ""} />
+              {slide.qrLabel ? <figcaption>{slide.qrLabel}</figcaption> : null}
+            </figure>
+          </a>
+        ) : null}
         <div className={styles.overlay}>
           {slide.eyebrow ? <p className={styles.eyebrow}>{slide.eyebrow}</p> : null}
           <h1>{slide.title}</h1>

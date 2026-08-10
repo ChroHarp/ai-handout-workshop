@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 function indexFromHash(total: number) {
   const match = window.location.hash.match(/slide=(\d+)/);
@@ -8,27 +8,26 @@ function indexFromHash(total: number) {
 }
 
 export function useDeckNavigation(total: number) {
-  const [index, setIndex] = useState(() =>
-    typeof window === "undefined" ? 0 : indexFromHash(total),
+  const index = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("hashchange", onStoreChange);
+      return () => window.removeEventListener("hashchange", onStoreChange);
+    },
+    () => indexFromHash(total),
+    () => 0,
   );
   const touchStart = useRef<number | null>(null);
 
   const goTo = useCallback(
-    (next: number) => setIndex(Math.min(Math.max(next, 0), total - 1)),
+    (next: number) => {
+      const target = Math.min(Math.max(next, 0), total - 1);
+      window.history.replaceState(null, "", `#slide=${target + 1}`);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    },
     [total],
   );
   const next = useCallback(() => goTo(index + 1), [goTo, index]);
   const previous = useCallback(() => goTo(index - 1), [goTo, index]);
-
-  useEffect(() => {
-    const syncFromHash = () => setIndex(indexFromHash(total));
-    window.addEventListener("hashchange", syncFromHash);
-    return () => window.removeEventListener("hashchange", syncFromHash);
-  }, [total]);
-
-  useEffect(() => {
-    window.history.replaceState(null, "", `#slide=${index + 1}`);
-  }, [index]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

@@ -1,15 +1,23 @@
 ---
-title: 整理簡報檔案
-layout: bullets
+title: 整理成一個 HTML 檔案
+layout: two-columns
 section: Step 3｜完成後檢查
 accent: orange
 animation: fade-up
 ---
 
-- **content/** — 每張投影片的 Markdown
-- **public/images/** — 所有圖片與圖像素材
-- **app/slides/** — 版型、翻頁與動畫程式
-- **package.json** — 預覽與正式建置指令
-- **.next/** — 建置時自動產生，不需手動編修或上傳
+## 免費 LLM 可完成的版本
 
-檔名大小寫一致、圖片使用相對路徑；每次修改後重新測試完整流程。
+- 主要成果是 **index.html**
+- 投影片文字、樣式與翻頁功能都在同一檔案
+- 有圖片時，另外保留 **images/** 資料夾
+
+<!-- column -->
+
+## 完成後檢查
+
+1. 雙擊 **index.html**，確認瀏覽器能開啟
+2. 逐頁檢查文字、圖片與翻頁功能
+3. 將 **index.html** 與 **images/** 一起上傳
+
+**使用 Agent 時，再進一步拆成多檔專案。**

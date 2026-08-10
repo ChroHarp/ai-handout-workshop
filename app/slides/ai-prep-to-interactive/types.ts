@@ -8,6 +8,8 @@ export const layouts = [
   "cards",
   "table",
   "quote",
+  "prompt",
+  "folder-tree",
   "full-image",
   "netlify-practice",
 ] as const;
@@ -24,6 +26,13 @@ export type Slide = {
   image?: string;
   imageAlt?: string;
   imageCaption?: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: string;
+  imageAspect?: string;
+  qrImage?: string;
+  qrAlt?: string;
+  qrLabel?: string;
+  qrLink?: string;
   video?: string;
   videoCaption?: string;
   sourceLabel?: string;
