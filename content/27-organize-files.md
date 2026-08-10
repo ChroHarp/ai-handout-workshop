@@ -6,10 +6,10 @@ accent: orange
 animation: fade-up
 ---
 
-- **index.html** — 簡報入口
 - **content/** — 每張投影片的 Markdown
 - **public/images/** — 所有圖片與圖像素材
-- **src/** — 版型、翻頁與動畫程式
-- **dist/** — build 後可部署的靜態網站
+- **app/slides/** — 版型、翻頁與動畫程式
+- **package.json** — 預覽與正式建置指令
+- **.next/** — 建置時自動產生，不需手動編修或上傳
 
 檔名大小寫一致、圖片使用相對路徑；每次修改後重新測試完整流程。

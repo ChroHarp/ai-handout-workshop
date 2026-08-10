@@ -8,8 +8,9 @@ function indexFromHash(total: number) {
 }
 
 export function useDeckNavigation(total: number) {
-  const [index, setIndex] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [index, setIndex] = useState(() =>
+    typeof window === "undefined" ? 0 : indexFromHash(total),
+  );
   const touchStart = useRef<number | null>(null);
 
   const goTo = useCallback(
@@ -21,16 +22,13 @@ export function useDeckNavigation(total: number) {
 
   useEffect(() => {
     const syncFromHash = () => setIndex(indexFromHash(total));
-    syncFromHash();
-    setReady(true);
     window.addEventListener("hashchange", syncFromHash);
     return () => window.removeEventListener("hashchange", syncFromHash);
   }, [total]);
 
   useEffect(() => {
-    if (!ready) return;
     window.history.replaceState(null, "", `#slide=${index + 1}`);
-  }, [index, ready]);
+  }, [index]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
