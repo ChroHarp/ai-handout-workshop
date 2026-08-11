@@ -580,7 +580,7 @@
   padding: 0;
   border: 0;
   font: inherit;
-  transform: translateY(-50%);
+  transform: translate(-200%, 50%);
   cursor: zoom-in;
   transition: left 240ms ease, top 240ms ease, width 240ms ease,
     transform 240ms ease;
@@ -676,6 +676,7 @@
     top: auto;
     bottom: 2.5%;
     width: 118px;
+    transform: translateX(-50%);
   }
 
   .coverQrExpanded {
@@ -689,5 +690,205 @@
 
   .slide[data-effects~="media-match"] .figure {
     height: auto !important;
+  }
+}
+/* P3 full-background trial layout */
+.slide[data-effects~="background-media"] {
+  background: #071b35;
+}
+
+.slide[data-effects~="background-media"] .header {
+  z-index: 3;
+  border-bottom: 0;
+  text-shadow: 0 2px 16px rgba(4, 18, 35, .58);
+}
+
+.slide[data-effects~="background-media"] .header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(54.55%, 760px);
+  height: 1px;
+  background: rgba(255, 255, 255, .34);
+}
+
+.slide[data-effects~="background-media"] .header h1 {
+  color: white;
+}
+
+.slide[data-effects~="background-media"] .section {
+  color: #ffd09a;
+}
+
+.slide[data-effects~="background-media"] .number {
+  display: none;
+}
+
+.slide[data-effects~="background-media"] .body,
+.slide[data-effects~="background-media"] .mediaLayout {
+  position: static;
+}
+
+.slide[data-effects~="background-media"] .mediaLayout {
+  display: block;
+  height: auto;
+}
+
+.slide[data-effects~="background-media"] .figure {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slide[data-effects~="background-media"] .figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 18, 35, .42), rgba(4, 18, 35, .08) 62%, transparent 84%),
+    linear-gradient(0deg, rgba(4, 18, 35, .2), transparent 48%);
+}
+
+.slide[data-effects~="background-media"] .figure figcaption {
+  right: 2.2%;
+  bottom: 2.5%;
+  left: auto;
+  max-width: 38%;
+}
+
+.slide[data-effects~="background-media"] .markdown {
+  position: absolute;
+  top: 25%;
+  left: 6%;
+  z-index: 2;
+  width: min(48%, 760px);
+  height: auto;
+  max-height: 69%;
+  padding: clamp(22px, 2vw, 34px) clamp(26px, 2.35vw, 40px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 1.1rem;
+  background: rgba(255, 253, 248, .6);
+  box-shadow: 0 18px 48px rgba(4, 18, 35, .28);
+  backdrop-filter: blur(12px) saturate(.9);
+}
+
+.slide[data-effects~="background-media"] .markdown :global(p) {
+  max-width: none;
+}
+
+.slide[data-effects~="background-media-narrow"] .markdown {
+  width: min(32%, 506.67px);
+}
+
+.slide[data-effects~="background-media-narrow"] .header::after {
+  width: min(36.37%, 506.67px);
+}
+
+@media (max-width: 899px) {
+  .slide[data-effects~="background-media"] {
+    min-height: 100dvh;
+  }
+
+  .slide[data-effects~="background-media"] .header::after {
+    width: 100%;
+  }
+
+  .slide[data-effects~="background-media"] .markdown {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-height: none;
+    padding: 24px;
+    overflow: visible;
+  }
+
+  .slide[data-effects~="background-media"] .figure figcaption {
+    right: 6%;
+    bottom: 1.5%;
+    max-width: 70%;
+  }
+}
+/* Ending social-contact layout */
+.slide[data-effects~="ending-social"] .overlay {
+  width: 48%;
+  justify-content: center;
+  padding: 6% 2.5% 6% 7%;
+}
+
+.slide[data-effects~="ending-social"] .overlay h1 {
+  font-size: clamp(58px, 5.1vw, 90px);
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown {
+  margin-top: 1em;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(p:first-child) {
+  max-width: 21ch;
+  margin-bottom: 1.15em;
+  font-size: clamp(26px, 2.05vw, 37px);
+  font-weight: 800;
+  line-height: 1.42;
+  text-wrap: balance;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(strong) {
+  color: white;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(h3) {
+  margin: 0 0 .55em;
+  color: #bfe9ff;
+  font-size: clamp(20px, 1.35vw, 25px);
+  letter-spacing: .06em;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(p:last-child) {
+  max-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6em;
+  margin: 0;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5em;
+  padding: .55em .9em;
+  border: 1px solid rgba(255, 255, 255, .48);
+  border-radius: .6em;
+  color: white;
+  background: rgba(7, 27, 53, .48);
+  box-shadow: 0 8px 24px rgba(4, 18, 35, .2);
+  font-size: clamp(16px, 1.05vw, 19px);
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a:hover),
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a:focus-visible) {
+  border-color: white;
+  background: rgba(39, 139, 195, .72);
+}
+
+@media (max-width: 899px) {
+  .slide[data-effects~="ending-social"] .overlay {
+    width: 100%;
+    justify-content: flex-end;
+    padding: 48px 7% 92px;
+  }
+
+  .slide[data-effects~="ending-social"] .overlay .markdown :global(p:first-child) {
+    max-width: 24ch;
   }
 }

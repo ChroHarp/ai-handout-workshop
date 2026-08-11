@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Slide } from "./types";
 import NetlifyPractice from "./NetlifyPractice";
 import { useDeckNavigation } from "./useDeckNavigation";
@@ -138,9 +138,13 @@ function SlideContent({ slide }: { slide: Slide }) {
 }
 
 export default function SlideDeck({ slides }: { slides: Slide[] }) {
-  const { index, next, previous, touchHandlers } = useDeckNavigation(slides.length);
+  const advanceEffectRef = useRef<() => boolean>(() => false);
+  const { index, next, previous, touchHandlers } = useDeckNavigation(
+    slides.length,
+    advanceEffectRef,
+  );
   const slide = slides[index];
-  const articleRef = useSlideEffects(slide);
+  const articleRef = useSlideEffects(slide, advanceEffectRef);
 
   if (!slide) return null;
 

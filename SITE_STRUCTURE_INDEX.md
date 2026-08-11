@@ -13,7 +13,7 @@
 - 每張 A4 已拆成獨立 TSX 頁面元件；入口頁只負責載入講義閱讀器。
 - 單頁密度規則已移至各頁 CSS Module；共用視覺與列印規則仍由主 CSS 管理。
 - 自動測試已固定檢查15張頁面、目前掛載頁面順序及 Step 4 內容順序。
-- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；41 張投影片正文由根目錄 `content/*.md` 載入。
+- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；42 張投影片正文由根目錄 `content/*.md` 載入。
 
 ## 主要檔案
 
@@ -28,10 +28,10 @@
 | `app/handout/styles/CoverPage.module.css` | 封面專屬樣式入口 | 只影響封面 |
 | `app/handout/styles/Page01.module.css`～`Page15.module.css` | 各頁局部密度與間距 | 單頁排版預設只改對應檔案 |
 | `public/assets/` | 講義實際使用圖片 | 修改檔名時同步更新頁面引用 |
-| `content/` | HTML 簡報的 41 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
+| `content/` | HTML 簡報的 42 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
 | `app/slides/ai-prep-to-interactive/` | Markdown 載入、版型、導覽與動畫 | 不放實際投影片正文 |
 | `public/images/ai-prep-to-interactive/` | HTML 簡報可公開圖片 | 只放已確認可公開的圖片，不放課程原始文件 |
-| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 41 頁時應全部通過 |
+| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 42 頁時應全部通過 |
 | `AGENTS.md` | 後續代理與人工編修規準 | 架構或驗收方式改變時同步更新 |
 | `vercel.json` | Vercel 專案設定 | 使用 Next.js 與 `npm run build` |
 
@@ -66,7 +66,7 @@ tests/
 ## HTML 簡報
 
 - 預覽路徑：`/slides/ai-prep-to-interactive`
-- 內容來源：`content/01-cover.md`～`content/41-next-date.md`
+- 內容來源：`content/01-cover.md`～`content/42-ending.md`
 - 圖片位置：`public/images/ai-prep-to-interactive/`
 - 編修說明：`app/slides/ai-prep-to-interactive/README.md`
 - React／TSX 只負責版型、Markdown 呈現、翻頁與動畫；投影片可見文字不得移入程式檔。

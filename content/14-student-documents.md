@@ -2,15 +2,15 @@
 title: 規劃學生要使用的文件
 layout: image-right
 section: Step 2｜製作講義與學習單
-image: /images/ai-prep-to-interactive/scenario-p14-v3.png
+image: /images/ai-prep-to-interactive/scenario-p14-v5.png
 imageAlt: 隆老師以合理的閱讀姿勢比較學生講義與活動工作頁
 imageCaption: 課程藍圖確認後，再把內容轉成學生實際使用的文件
-imageAspect: 1 / 1
+imageAspect: 16 / 9
 imageFit: cover
 imagePosition: center
 accent: blue
 animation: fade-up
-effects: image-then-copy
+effects: background-media image-then-copy
 ---
 
 課程藍圖已經確認，隆老師接著要準備學生上課時會使用的文件。

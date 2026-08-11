@@ -10,7 +10,7 @@ imageFit: cover
 imagePosition: center
 accent: teal
 animation: fade-up
-effects: media-match
+effects: background-media background-media-narrow image-heading-typewriter-copy
 ---
 
 隆老師已整理營隊對象、時間、現有資料與光影藝術方向。

@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜HTML 簡報
 
-這份簡報採用「Markdown 內容分離方案」。41 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
+這份簡報採用「Markdown 內容分離方案」。42 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
 
 預覽路徑：`/slides/ai-prep-to-interactive`
 
@@ -97,7 +97,7 @@ npm.cmd run test:slides
 
 ## 操作方式
 
-- 下一張：方向鍵右／下、Page Down、空白鍵
+- 逐步顯示／下一張：方向鍵右／下、Page Down、空白鍵；有動畫內容時會先依序顯示，全部顯示後再翻頁
 - 上一張：方向鍵左／上、Page Up
 - 第一張／最後一張：Home／End
 - 全螢幕：按 `F`，或使用右下角按鈕

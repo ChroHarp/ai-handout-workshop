@@ -5,12 +5,12 @@ section: Step 3｜製作 HTML 簡報
 image: /images/ai-prep-to-interactive/scenario-p20-v2.png
 imageAlt: 隆老師將學生講義與工作頁轉化為課堂 HTML 簡報
 imageCaption: 先確認講義內容，再規劃課堂投影的節奏
-imageAspect: 16 / 9
+imageAspect: 3 / 2
 imageFit: cover
 imagePosition: center
 accent: gold
 animation: fade-up
-effects: media-match
+effects: background-media image-heading-typewriter-copy
 ---
 
 學生講義與活動工作頁已經完成，隆老師接著要製作課堂講解使用的 HTML 簡報。

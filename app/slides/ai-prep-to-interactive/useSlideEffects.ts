@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, type MutableRefObject } from "react";
 import type { Slide } from "./types";
 
 const fadeKeyframes: Keyframe[] = [
@@ -101,57 +101,63 @@ function matchMediaHeight(article: HTMLElement) {
   };
 }
 
-function setupClickSections(article: HTMLElement) {
-  const markdown = article.querySelector<HTMLElement>('[data-role="slide-markdown"]');
-  if (!markdown) return () => {};
-
-  const headings = Array.from(markdown.querySelectorAll<HTMLElement>("h2"));
-  const groups = headings.map((heading) =>
-    [heading, heading.nextElementSibling].filter(
-      (element): element is HTMLElement => element instanceof HTMLElement,
-    ),
+function elementsFrom(nodes: Iterable<Element | null | undefined>) {
+  return Array.from(nodes).filter(
+    (element): element is HTMLElement => element instanceof HTMLElement,
   );
-
-  groups.flat().forEach((element) => {
-    element.style.opacity = "0";
-    element.style.visibility = "hidden";
-    element.style.transform = "translateY(14px)";
-  });
-
-  let revealed = 0;
-  const revealNext = () => {
-    const group = groups[revealed];
-    if (!group) return;
-    group.forEach((element, index) => {
-      element.style.visibility = "visible";
-      element.animate(fadeKeyframes, {
-        delay: index * 100,
-        duration: 520,
-        easing: "cubic-bezier(.2,.72,.25,1)",
-        fill: "forwards",
-      });
-    });
-    revealed += 1;
-  };
-
-  article.addEventListener("click", revealNext);
-  return () => article.removeEventListener("click", revealNext);
 }
 
-export function useSlideEffects(slide: Slide | undefined) {
+export function useSlideEffects(
+  slide: Slide | undefined,
+  advanceEffectRef: MutableRefObject<() => boolean>,
+) {
   const articleRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
     const article = articleRef.current;
+    advanceEffectRef.current = () => false;
     if (!article || !slide?.effects) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const effects = new Set(slide.effects.split(/[\s,]+/).filter(Boolean));
     const animations: Animation[] = [];
     const cleanups: Array<() => void> = [];
+    const hidden = new Set<HTMLElement>();
+    const stages: Array<() => void> = [];
     const markdowns = Array.from(
       article.querySelectorAll<HTMLElement>('[data-role="slide-markdown"]'),
     );
+
+    const addStage = (
+      candidates: Iterable<Element | null | undefined>,
+      typewriterElement?: Element | null,
+    ) => {
+      const elements = elementsFrom(candidates);
+      if (!elements.length) return;
+
+      elements.forEach((element) => {
+        hidden.add(element);
+        element.style.opacity = "0";
+        element.style.visibility = "hidden";
+        element.style.transform = "translateY(14px)";
+      });
+
+      stages.push(() => {
+        elements.forEach((element, index) => {
+          element.style.visibility = "visible";
+          element.style.transform = "";
+
+          if (element === typewriterElement) {
+            const typed = typewrite(element);
+            cleanups.push(typed.cleanup);
+            return;
+          }
+
+          const animation = fadeIn(element, index * 90, 520);
+          if (animation) animations.push(animation);
+        });
+      });
+    };
 
     if (effects.has("cards-stagger")) {
       article.querySelectorAll("li").forEach((card, index) => {
@@ -161,71 +167,146 @@ export function useSlideEffects(slide: Slide | undefined) {
     }
 
     if (effects.has("click-sections")) {
-      cleanups.push(setupClickSections(article));
+      const markdown = markdowns[0];
+      if (markdown) {
+        const included = new Set<HTMLElement>();
+        markdown.querySelectorAll<HTMLElement>("h2").forEach((heading) => {
+          const group = elementsFrom([heading, heading.nextElementSibling]);
+          group.forEach((element) => included.add(element));
+          addStage(group);
+        });
+        const closing = markdown.querySelector<HTMLElement>(":scope > p:last-child");
+        if (closing && !included.has(closing)) addStage([closing]);
+      }
+    }
+
+    if (effects.has("background-media")) {
+      const background = fadeIn(
+        article.querySelector('[data-role="slide-media"]'),
+        0,
+        500,
+      );
+      const panel = fadeIn(markdowns[0] || null, 1000, 520);
+      if (background) animations.push(background);
+      if (panel) animations.push(panel);
     }
 
     if (effects.has("image-heading-typewriter-copy")) {
-      const image = fadeIn(article.querySelector('[data-role="slide-media"]'), 80, 650);
-      const heading = fadeIn(markdowns[0]?.querySelector("h2") || null, 520, 520);
-      if (image) animations.push(image);
-      if (heading) animations.push(heading);
-      const typed = typewrite(markdowns[0]?.querySelector("blockquote") || null, 900);
-      cleanups.push(typed.cleanup);
-      const copy = fadeIn(markdowns[0]?.querySelector("p:last-child") || null, typed.duration + 160, 520);
-      if (copy) animations.push(copy);
+      if (!effects.has("background-media")) {
+        const image = fadeIn(
+          article.querySelector('[data-role="slide-media"]'),
+          80,
+          650,
+        );
+        if (image) animations.push(image);
+      }
+      const content = markdowns[0];
+      const heading = content?.querySelector("h2") || null;
+      if (!effects.has("background-media")) addStage([heading]);
+      const prompt = content?.querySelector("blockquote") || null;
+      addStage([prompt], prompt);
+      const segments = content
+        ? Array.from(
+            content.querySelectorAll<HTMLElement>(
+              ":scope > p, :scope > ul > li, :scope > ol > li",
+            ),
+          )
+        : [];
+      segments.forEach((segment, index) => {
+        const isAutomaticFirstCopy =
+          effects.has("background-media") && !heading && index === 0;
+        if (!isAutomaticFirstCopy) addStage([segment]);
+      });
     }
 
     if (effects.has("typewriter")) {
-      const typed = typewrite(article.querySelector("blockquote"), 260);
-      cleanups.push(typed.cleanup);
+      const prompt = article.querySelector("blockquote");
+      addStage([prompt], prompt);
     }
 
     if (effects.has("points-then-typewriter")) {
       const left = markdowns[0];
       const right = markdowns[1];
-      const leftHeading = fadeIn(left?.querySelector("h2") || null, 100, 480);
-      if (leftHeading) animations.push(leftHeading);
-      const points = left?.querySelectorAll("li") || [];
-      points.forEach((point, index) => {
-        const animation = fadeIn(point, 350 + index * 190, 520);
-        if (animation) animations.push(animation);
-      });
-      const promptStart = 350 + points.length * 190 + 500;
-      const rightHeading = fadeIn(right?.querySelector("h2") || null, promptStart - 300, 480);
-      if (rightHeading) animations.push(rightHeading);
-      const typed = typewrite(right?.querySelector("blockquote") || null, promptStart);
-      cleanups.push(typed.cleanup);
+      addStage([left?.querySelector("h2")]);
+      left?.querySelectorAll("li").forEach((point) => addStage([point]));
+      addStage([right?.querySelector("h2")]);
+      const prompt = right?.querySelector("blockquote") || null;
+      addStage([prompt], prompt);
     }
 
     if (effects.has("image-then-copy")) {
-      const image = fadeIn(article.querySelector('[data-role="slide-media"]'), 80, 650);
-      if (image) animations.push(image);
+      if (!effects.has("background-media")) {
+        const image = fadeIn(
+          article.querySelector('[data-role="slide-media"]'),
+          80,
+          650,
+        );
+        if (image) animations.push(image);
+      }
       const content = markdowns[0];
       const segments = content
-        ? Array.from(content.querySelectorAll(":scope > p, :scope > ul > li"))
+        ? Array.from(
+            content.querySelectorAll<HTMLElement>(
+              ":scope > p, :scope > ul > li, :scope > ol > li",
+            ),
+          )
         : [];
       segments.forEach((segment, index) => {
-        const animation = fadeIn(segment, 620 + index * 230, 520);
-        if (animation) animations.push(animation);
+        const isAutomaticFirstCopy =
+          effects.has("background-media") && index === 0;
+        if (!isAutomaticFirstCopy) addStage([segment]);
       });
     }
 
     if (effects.has("image-then-typewriter")) {
-      const image = fadeIn(article.querySelector('[data-role="slide-media"]'), 80, 650);
+      const image = fadeIn(
+        article.querySelector('[data-role="slide-media"]'),
+        80,
+        650,
+      );
       if (image) animations.push(image);
-      const typed = typewrite(article.querySelector("blockquote"), 760);
-      cleanups.push(typed.cleanup);
+      const prompt = article.querySelector("blockquote");
+      addStage([prompt], prompt);
     }
 
     if (effects.has("media-match")) {
       cleanups.push(matchMediaHeight(article));
     }
 
+    let revealed = 0;
+    const revealNext = () => {
+      const stage = stages[revealed];
+      if (!stage) return false;
+      stage();
+      revealed += 1;
+      return true;
+    };
+
+    advanceEffectRef.current = revealNext;
+    const onClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("button, a, video, input, textarea, select")
+      ) {
+        return;
+      }
+      revealNext();
+    };
+    if (stages.length) article.addEventListener("click", onClick);
+
     return () => {
+      advanceEffectRef.current = () => false;
+      article.removeEventListener("click", onClick);
       animations.forEach((animation) => animation.cancel());
       cleanups.forEach((cleanup) => cleanup());
+      hidden.forEach((element) => {
+        element.style.opacity = "";
+        element.style.visibility = "";
+        element.style.transform = "";
+      });
     };
-  }, [slide?.fileName, slide?.effects]);
+  }, [advanceEffectRef, slide?.fileName, slide?.effects]);
 
   return articleRef;
 }

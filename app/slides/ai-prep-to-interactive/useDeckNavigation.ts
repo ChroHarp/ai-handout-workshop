@@ -1,13 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  type MutableRefObject,
+} from "react";
 
 function indexFromHash(total: number) {
   const match = window.location.hash.match(/slide=(\d+)/);
   return match ? Math.min(Math.max(Number(match[1]) - 1, 0), total - 1) : 0;
 }
 
-export function useDeckNavigation(total: number) {
+export function useDeckNavigation(
+  total: number,
+  advanceEffectRef: MutableRefObject<() => boolean>,
+) {
   const index = useSyncExternalStore(
     (onStoreChange) => {
       window.addEventListener("hashchange", onStoreChange);
@@ -26,7 +35,10 @@ export function useDeckNavigation(total: number) {
     },
     [total],
   );
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
+  const next = useCallback(() => {
+    if (advanceEffectRef.current()) return;
+    goTo(index + 1);
+  }, [advanceEffectRef, goTo, index]);
   const previous = useCallback(() => goTo(index - 1), [goTo, index]);
 
   useEffect(() => {
