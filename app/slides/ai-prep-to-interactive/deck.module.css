@@ -571,3 +571,123 @@
     padding-left: 1.15em;
   }
 }
+/* Interaction and staged-reveal effects */
+.coverQr {
+  left: auto;
+  top: 59%;
+  right: 33%;
+  bottom: auto;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  transform: translateY(-50%);
+  cursor: zoom-in;
+  transition: left 240ms ease, top 240ms ease, width 240ms ease,
+    transform 240ms ease;
+}
+
+.coverQrExpanded {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  width: clamp(300px, 31vw, 520px);
+  cursor: zoom-out;
+}
+
+.coverQrExpanded figure {
+  box-shadow:
+    0 0 0 100vmax rgba(4, 18, 35, .72),
+    0 22px 60px rgba(4, 18, 35, .38);
+}
+
+.slide[data-effects~="click-sections"] {
+  cursor: pointer;
+}
+
+.slide[data-effects~="click-sections"] .markdown :global(h2) {
+  display: table;
+  margin-top: .7em;
+  margin-bottom: .48em;
+  padding: .24em .62em;
+  border-radius: .42em;
+  background: var(--accent-soft);
+  color: #0b2545;
+}
+
+.slide[data-effects~="media-match"] .figure {
+  aspect-ratio: auto !important;
+  max-height: none !important;
+  align-self: center;
+}
+
+.slide[data-effects~="table-map"] .body {
+  display: grid;
+  align-items: center;
+}
+
+.slide[data-effects~="table-map"] .markdown {
+  height: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(.table-wrap) {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(table) {
+  width: 100%;
+  table-layout: fixed;
+  margin-inline: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(1)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(1)) {
+  width: 7%;
+  text-align: center;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(2)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(2)) {
+  width: 20%;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(3)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(3)) {
+  width: 36%;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(4)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(4)) {
+  width: 10%;
+  text-align: center;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(5)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(5)) {
+  width: 27%;
+}
+
+@media (max-width: 899px) {
+  .coverQr {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 2.5%;
+    width: 118px;
+  }
+
+  .coverQrExpanded {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    bottom: auto;
+    width: min(72vw, 420px);
+  }
+
+  .slide[data-effects~="media-match"] .figure {
+    height: auto !important;
+  }
+}

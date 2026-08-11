@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import type { Slide } from "./types";
 import NetlifyPractice from "./NetlifyPractice";
 import { useDeckNavigation } from "./useDeckNavigation";
+import { useSlideEffects } from "./useSlideEffects";
 import styles from "./deck.module.css";
 
 function Markdown({ html }: { html: string }) {
   return (
     <div
       className={styles.markdown}
+      data-role="slide-markdown"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -17,7 +20,7 @@ function Markdown({ html }: { html: string }) {
 function SlideMedia({ slide }: { slide: Slide }) {
   if (slide.video) {
     return (
-      <figure className={styles.figure}>
+      <figure className={styles.figure} data-role="slide-media">
         <video src={slide.video} controls muted playsInline preload="metadata" />
         {slide.videoCaption ? <figcaption>{slide.videoCaption}</figcaption> : null}
       </figure>
@@ -29,6 +32,7 @@ function SlideMedia({ slide }: { slide: Slide }) {
   return (
     <figure
       className={styles.figure}
+      data-role="slide-media"
       style={
         slide.imageAspect
           ? {
@@ -53,6 +57,32 @@ function SlideMedia({ slide }: { slide: Slide }) {
   );
 }
 
+function CoverQr({ slide }: { slide: Slide }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!slide.qrImage) return null;
+
+  return (
+    <button
+      type="button"
+      className={[
+        styles.coverQr,
+        expanded ? styles.coverQrExpanded : null,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={() => setExpanded((current) => !current)}
+      aria-label={slide.qrAlt || slide.qrLabel || ""}
+      aria-expanded={expanded}
+    >
+      <figure>
+        <img src={slide.qrImage} alt={slide.qrAlt || ""} />
+        {slide.qrLabel ? <figcaption>{slide.qrLabel}</figcaption> : null}
+      </figure>
+    </button>
+  );
+}
+
 function SlideContent({ slide }: { slide: Slide }) {
   const media = <SlideMedia slide={slide} />;
 
@@ -60,19 +90,7 @@ function SlideContent({ slide }: { slide: Slide }) {
     return (
       <>
         {media}
-        {slide.qrImage ? (
-          <a
-            className={styles.coverQr}
-            href={slide.qrLink || "#"}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <figure>
-              <img src={slide.qrImage} alt={slide.qrAlt || ""} />
-              {slide.qrLabel ? <figcaption>{slide.qrLabel}</figcaption> : null}
-            </figure>
-          </a>
-        ) : null}
+        <CoverQr slide={slide} />
         <div className={styles.overlay}>
           {slide.eyebrow ? <p className={styles.eyebrow}>{slide.eyebrow}</p> : null}
           <h1>{slide.title}</h1>
@@ -84,7 +102,7 @@ function SlideContent({ slide }: { slide: Slide }) {
 
   if (slide.layout === "image-left" || slide.layout === "image-right") {
     return (
-      <div className={styles.mediaLayout}>
+      <div className={styles.mediaLayout} data-role="media-layout">
         {slide.layout === "image-left" ? media : null}
         <Markdown html={slide.html} />
         {slide.layout === "image-right" ? media : null}
@@ -122,6 +140,7 @@ function SlideContent({ slide }: { slide: Slide }) {
 export default function SlideDeck({ slides }: { slides: Slide[] }) {
   const { index, next, previous, touchHandlers } = useDeckNavigation(slides.length);
   const slide = slides[index];
+  const articleRef = useSlideEffects(slide);
 
   if (!slide) return null;
 
@@ -133,7 +152,9 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
       {...touchHandlers}
     >
       <article
+        ref={articleRef}
         key={slide.fileName}
+        data-effects={slide.effects}
         className={[
           styles.slide,
           styles[`layout${slide.layout

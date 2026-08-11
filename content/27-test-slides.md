@@ -4,6 +4,7 @@ layout: cards
 section: Step 3｜現場實作
 accent: teal
 animation: slide-left
+effects: cards-stagger
 ---
 
 先測試翻頁、方向鍵、頁碼與手機寬度，再用下列指令修正：

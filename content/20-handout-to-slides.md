@@ -10,6 +10,7 @@ imageFit: cover
 imagePosition: center
 accent: gold
 animation: fade-up
+effects: media-match
 ---
 
 學生講義與活動工作頁已經完成，隆老師接著要製作課堂講解使用的 HTML 簡報。

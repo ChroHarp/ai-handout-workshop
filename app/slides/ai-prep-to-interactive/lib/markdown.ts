@@ -273,6 +273,7 @@ export function parseSlide(fileName: string, source: string): Slide {
     resetLabel: attributes.resetLabel,
     accent: attributes.accent || "teal",
     animation: attributes.animation || "fade-up",
+    effects: attributes.effects,
     contentSize: attributes.contentSize === "large" ? "large" : undefined,
     html: renderMarkdown(body),
     columns: columnBodies.map(renderMarkdown),

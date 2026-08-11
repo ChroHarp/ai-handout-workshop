@@ -10,6 +10,7 @@ imageFit: cover
 imagePosition: center
 accent: orange
 animation: fade-up
+effects: click-sections
 ---
 
 隆老師接到暑期 SEL 資優營隊邀約。他有 SEL 的基本概念，也想到可以從光影藝術切入，但課程仍在模糊狀態。

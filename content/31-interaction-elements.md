@@ -4,6 +4,7 @@ layout: cards
 section: Step 4｜加入互動並上線
 accent: orange
 animation: fade-up
+effects: cards-stagger
 ---
 
 - **放在哪一頁**

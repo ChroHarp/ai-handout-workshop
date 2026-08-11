@@ -10,6 +10,7 @@ imageFit: cover
 imagePosition: center
 accent: blue
 animation: fade-up
+effects: image-then-copy
 ---
 
 課程藍圖已經確認，隆老師接著要準備學生上課時會使用的文件。

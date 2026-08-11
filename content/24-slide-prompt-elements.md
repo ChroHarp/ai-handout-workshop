@@ -4,6 +4,7 @@ layout: two-columns
 section: Step 3｜製作 HTML 簡報
 accent: gold
 animation: fade-up
+effects: points-then-typewriter
 ---
 
 ## 必要元素

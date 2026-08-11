@@ -4,6 +4,7 @@ layout: two-columns
 section: Step 2｜製作講義與學習單
 accent: blue
 animation: fade-up
+effects: points-then-typewriter
 ---
 
 ## 必要元素

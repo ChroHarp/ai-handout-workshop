@@ -4,6 +4,7 @@ layout: table
 section: Step 3｜製作 HTML 簡報
 accent: gold
 animation: fade-up
+effects: table-map
 ---
 
 | 頁次 | 投影片主題 | 內容與操作 | 預計時間 | 視覺安排 |
