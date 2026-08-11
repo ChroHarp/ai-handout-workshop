@@ -41,6 +41,7 @@ export type Slide = {
   resetLabel?: string;
   accent?: string;
   animation?: string;
+  contentSize?: "large";
   html: string;
   columns: string[];
 };

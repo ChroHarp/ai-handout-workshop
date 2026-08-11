@@ -16,10 +16,10 @@ function frontMatter(source) {
   }));
 }
 
-test("簡報包含依序命名的 40 個 Markdown 檔案", async () => {
+test("簡報包含依序命名的 41 個 Markdown 檔案", async () => {
   const files = (await readdir(contentDirectory)).filter((name) => /^\d{2}-[a-z0-9-]+\.md$/.test(name)).sort();
-  assert.equal(files.length, 40);
-  assert.deepEqual(files.map((name) => name.slice(0, 2)), Array.from({ length: 40 }, (_, index) => String(index + 1).padStart(2, "0")));
+  assert.equal(files.length, 41);
+  assert.deepEqual(files.map((name) => name.slice(0, 2)), Array.from({ length: 41 }, (_, index) => String(index + 1).padStart(2, "0")));
 });
 
 test("每張投影片都有標題、合法版型與存在的圖片", async () => {

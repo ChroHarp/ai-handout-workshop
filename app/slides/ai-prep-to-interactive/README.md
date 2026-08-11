@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜HTML 簡報
 
-這份簡報採用「Markdown 內容分離方案」。40 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
+這份簡報採用「Markdown 內容分離方案」。41 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
 
 預覽路徑：`/slides/ai-prep-to-interactive`
 

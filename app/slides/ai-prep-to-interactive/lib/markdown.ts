@@ -179,6 +179,13 @@ export function renderMarkdown(markdown: string) {
       continue;
     }
 
+    if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      html.push("<hr>");
+      continue;
+    }
+
     const heading = trimmed.match(/^(#{2,4})\s+(.+)$/);
     if (heading) {
       flushParagraph();
@@ -266,6 +273,7 @@ export function parseSlide(fileName: string, source: string): Slide {
     resetLabel: attributes.resetLabel,
     accent: attributes.accent || "teal",
     animation: attributes.animation || "fade-up",
+    contentSize: attributes.contentSize === "large" ? "large" : undefined,
     html: renderMarkdown(body),
     columns: columnBodies.map(renderMarkdown),
   };

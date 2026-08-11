@@ -140,6 +140,7 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
             .split("-")
             .map((part) => part[0].toUpperCase() + part.slice(1))
             .join("")}`],
+          slide.contentSize === "large" ? styles.contentLarge : null,
           styles[slide.animation || "fade-up"],
         ]
           .filter(Boolean)
