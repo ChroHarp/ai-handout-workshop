@@ -5,8 +5,12 @@ section: Step 1｜規劃課程
 image: /images/ai-prep-to-interactive/scenario-p07-v2.png
 imageAlt: 隆老師比較三個不同的光影課程構想
 imageCaption: 先比較可行方向，再選定課程主軸
+imageAspect: 3 / 2
+imageFit: cover
+imagePosition: center
 accent: teal
 animation: fade-up
+effects: background-media background-media-narrow image-heading-typewriter-copy
 ---
 
 隆老師已整理營隊對象、時間、現有資料與光影藝術方向。

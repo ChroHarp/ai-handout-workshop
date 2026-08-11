@@ -4,6 +4,7 @@ layout: cards
 section: Finish｜成果驗收
 accent: teal
 animation: fade-up
+effects: cards-stagger
 ---
 
 - **課程藍圖** — 能開啟、內容一致

@@ -179,6 +179,13 @@ export function renderMarkdown(markdown: string) {
       continue;
     }
 
+    if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      html.push("<hr>");
+      continue;
+    }
+
     const heading = trimmed.match(/^(#{2,4})\s+(.+)$/);
     if (heading) {
       flushParagraph();
@@ -251,6 +258,13 @@ export function parseSlide(fileName: string, source: string): Slide {
     image: attributes.image,
     imageAlt: attributes.imageAlt,
     imageCaption: attributes.imageCaption,
+    imageFit: attributes.imageFit === "contain" ? "contain" : "cover",
+    imagePosition: attributes.imagePosition,
+    imageAspect: attributes.imageAspect,
+    qrImage: attributes.qrImage,
+    qrAlt: attributes.qrAlt,
+    qrLabel: attributes.qrLabel,
+    qrLink: attributes.qrLink,
     video: attributes.video,
     videoCaption: attributes.videoCaption,
     sourceLabel: attributes.sourceLabel,
@@ -259,6 +273,8 @@ export function parseSlide(fileName: string, source: string): Slide {
     resetLabel: attributes.resetLabel,
     accent: attributes.accent || "teal",
     animation: attributes.animation || "fade-up",
+    effects: attributes.effects,
+    contentSize: attributes.contentSize === "large" ? "large" : undefined,
     html: renderMarkdown(body),
     columns: columnBodies.map(renderMarkdown),
   };

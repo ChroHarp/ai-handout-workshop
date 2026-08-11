@@ -4,6 +4,7 @@ layout: cards
 section: Step 2｜現場實作
 accent: teal
 animation: fade-up
+effects: cards-stagger
 ---
 
 - **活動前** — 記下第一次觀察與變因預測

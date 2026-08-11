@@ -92,6 +92,22 @@
 .markdown :global(ul), .markdown :global(ol) { margin: 0; padding-left: 1.3em; }
 .markdown :global(li) { margin: .38em 0; padding-left: .18em; font-size: inherit; line-height: inherit; }
 .markdown :global(li::marker) { color: var(--accent); font-weight: 900; }
+.markdown :global(hr) {
+  width: 100%;
+  height: 2px;
+  margin: clamp(12px, 1vw, 18px) 0;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.contentLarge .markdown {
+  font-size: clamp(28px, 2vw, 36px);
+  line-height: 1.52;
+}
+
+.contentLarge .markdown :global(li) {
+  margin-block: .24em;
+}
 .markdown :global(strong) { color: #0b2545; font-weight: 850; }
 .markdown :global(code) { padding: .08em .3em; border-radius: .22em; color: #8e4119; background: #fff0e7; font-size: .9em; }
 .markdown :global(a) { color: #0f6997; font-weight: 800; text-underline-offset: .18em; }
@@ -106,8 +122,8 @@
   border-radius: 0 .7em .7em 0;
   color: #173750;
   background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,.88));
-  font-size: clamp(18px, 1.25vw, 23px);
-  line-height: 1.62;
+  font-size: clamp(22px, 1.58vw, 29px);
+  line-height: 1.58;
 }
 
 .markdown :global(.table-wrap) {
@@ -227,6 +243,26 @@
 .overlay .markdown :global(p) { max-width: 34ch; }
 .layoutFullImage .overlay { justify-content: flex-end; width: 74%; padding-bottom: 7%; }
 .layoutFullImage .overlay h1 { font-size: clamp(50px, 4.7vw, 84px); }
+.coverQr {
+  position: absolute;
+  right: 5.5%;
+  bottom: 6%;
+  z-index: 4;
+  width: clamp(128px, 11vw, 190px);
+  color: #0b2545;
+  text-decoration: none;
+}
+
+.coverQr figure {
+  margin: 0;
+  padding: .55em;
+  border-radius: .8em;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 12px 34px rgba(5,24,47,.28);
+}
+
+.coverQr img { width: 100%; height: auto; display: block; }
+ .coverQr figcaption { margin-top: .35em; font-size: clamp(14px, .95vw, 17px); font-weight: 800; line-height: 1.25; text-align: center; }
 
 .practiceLayout {
   height: 100%;
@@ -336,6 +372,7 @@
   .overlay h1 { font-size: clamp(60px, 14vw, 78px); }
   .layoutCover .figure::after,
   .layoutFullImage .figure::after { background: linear-gradient(0deg, rgba(5,24,47,.98) 0%, rgba(5,24,47,.64) 60%, rgba(5,24,47,.16) 100%); }
+  .coverQr { right: 7%; bottom: 2.5%; width: 118px; }
   .controls { opacity: .9; }
 }
 
@@ -385,12 +422,24 @@
   height: auto;
 }
 
+.layoutPrompt .markdown :global(h2) {
+  width: min(100%, 54ch);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.layoutPrompt .markdown > :global(p) {
+  width: min(100%, 54ch);
+  margin-inline: auto;
+  text-align: center;
+}
+
 .layoutPrompt .markdown :global(blockquote) {
   width: min(100%, 54ch);
   margin-inline: auto;
   padding: 1.05em 1.3em 1.05em 1.55em;
-  font-size: clamp(20px, 1.42vw, 26px);
-  line-height: 1.68;
+  font-size: clamp(22px, 1.58vw, 29px);
+  line-height: 1.58;
   text-align: left;
   text-wrap: pretty;
 }
@@ -520,5 +569,326 @@
   .layoutFolderTree .markdown :global(ul ul) {
     margin-left: .45em;
     padding-left: 1.15em;
+  }
+}
+/* Interaction and staged-reveal effects */
+.coverQr {
+  left: auto;
+  top: 59%;
+  right: 33%;
+  bottom: auto;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  transform: translate(-200%, 50%);
+  cursor: zoom-in;
+  transition: left 240ms ease, top 240ms ease, width 240ms ease,
+    transform 240ms ease;
+}
+
+.coverQrExpanded {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  width: clamp(300px, 31vw, 520px);
+  cursor: zoom-out;
+}
+
+.coverQrExpanded figure {
+  box-shadow:
+    0 0 0 100vmax rgba(4, 18, 35, .72),
+    0 22px 60px rgba(4, 18, 35, .38);
+}
+
+.slide[data-effects~="click-sections"] {
+  cursor: pointer;
+}
+
+.slide[data-effects~="click-sections"] .markdown :global(h2) {
+  display: table;
+  margin-top: .7em;
+  margin-bottom: .48em;
+  padding: .24em .62em;
+  border-radius: .42em;
+  background: var(--accent-soft);
+  color: #0b2545;
+}
+
+.slide[data-effects~="media-match"] .figure {
+  aspect-ratio: auto !important;
+  max-height: none !important;
+  align-self: center;
+}
+
+.slide[data-effects~="table-map"] .body {
+  display: grid;
+  align-items: center;
+}
+
+.slide[data-effects~="table-map"] .markdown {
+  height: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(.table-wrap) {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(table) {
+  width: 100%;
+  table-layout: fixed;
+  margin-inline: auto;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(1)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(1)) {
+  width: 7%;
+  text-align: center;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(2)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(2)) {
+  width: 20%;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(3)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(3)) {
+  width: 36%;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(4)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(4)) {
+  width: 10%;
+  text-align: center;
+}
+
+.slide[data-effects~="table-map"] .markdown :global(th:nth-child(5)),
+.slide[data-effects~="table-map"] .markdown :global(td:nth-child(5)) {
+  width: 27%;
+}
+
+@media (max-width: 899px) {
+  .coverQr {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 2.5%;
+    width: 118px;
+    transform: translateX(-50%);
+  }
+
+  .coverQrExpanded {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    bottom: auto;
+    width: min(72vw, 420px);
+  }
+
+  .slide[data-effects~="media-match"] .figure {
+    height: auto !important;
+  }
+}
+/* P3 full-background trial layout */
+.slide[data-effects~="background-media"] {
+  background: #071b35;
+}
+
+.slide[data-effects~="background-media"] .header {
+  z-index: 3;
+  border-bottom: 0;
+  text-shadow: 0 2px 16px rgba(4, 18, 35, .58);
+}
+
+.slide[data-effects~="background-media"] .header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(54.55%, 760px);
+  height: 1px;
+  background: rgba(255, 255, 255, .34);
+}
+
+.slide[data-effects~="background-media"] .header h1 {
+  color: white;
+}
+
+.slide[data-effects~="background-media"] .section {
+  color: #ffd09a;
+}
+
+.slide[data-effects~="background-media"] .number {
+  display: none;
+}
+
+.slide[data-effects~="background-media"] .body,
+.slide[data-effects~="background-media"] .mediaLayout {
+  position: static;
+}
+
+.slide[data-effects~="background-media"] .mediaLayout {
+  display: block;
+  height: auto;
+}
+
+.slide[data-effects~="background-media"] .figure {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slide[data-effects~="background-media"] .figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 18, 35, .42), rgba(4, 18, 35, .08) 62%, transparent 84%),
+    linear-gradient(0deg, rgba(4, 18, 35, .2), transparent 48%);
+}
+
+.slide[data-effects~="background-media"] .figure figcaption {
+  right: 2.2%;
+  bottom: 2.5%;
+  left: auto;
+  max-width: 38%;
+}
+
+.slide[data-effects~="background-media"] .markdown {
+  position: absolute;
+  top: 25%;
+  left: 6%;
+  z-index: 2;
+  width: min(48%, 760px);
+  height: auto;
+  max-height: 69%;
+  padding: clamp(22px, 2vw, 34px) clamp(26px, 2.35vw, 40px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 1.1rem;
+  background: rgba(255, 253, 248, .6);
+  box-shadow: 0 18px 48px rgba(4, 18, 35, .28);
+  backdrop-filter: blur(12px) saturate(.9);
+}
+
+.slide[data-effects~="background-media"] .markdown :global(p) {
+  max-width: none;
+}
+
+.slide[data-effects~="background-media-narrow"] .markdown {
+  width: min(32%, 506.67px);
+}
+
+.slide[data-effects~="background-media-narrow"] .header::after {
+  width: min(36.37%, 506.67px);
+}
+
+@media (max-width: 899px) {
+  .slide[data-effects~="background-media"] {
+    min-height: 100dvh;
+  }
+
+  .slide[data-effects~="background-media"] .header::after {
+    width: 100%;
+  }
+
+  .slide[data-effects~="background-media"] .markdown {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-height: none;
+    padding: 24px;
+    overflow: visible;
+  }
+
+  .slide[data-effects~="background-media"] .figure figcaption {
+    right: 6%;
+    bottom: 1.5%;
+    max-width: 70%;
+  }
+}
+/* Ending social-contact layout */
+.slide[data-effects~="ending-social"] .overlay {
+  width: 48%;
+  justify-content: center;
+  padding: 6% 2.5% 6% 7%;
+}
+
+.slide[data-effects~="ending-social"] .overlay h1 {
+  font-size: clamp(58px, 5.1vw, 90px);
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown {
+  margin-top: 1em;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(p:first-child) {
+  max-width: 21ch;
+  margin-bottom: 1.15em;
+  font-size: clamp(26px, 2.05vw, 37px);
+  font-weight: 800;
+  line-height: 1.42;
+  text-wrap: balance;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(strong) {
+  color: white;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(h3) {
+  margin: 0 0 .55em;
+  color: #bfe9ff;
+  font-size: clamp(20px, 1.35vw, 25px);
+  letter-spacing: .06em;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(p:last-child) {
+  max-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6em;
+  margin: 0;
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5em;
+  padding: .55em .9em;
+  border: 1px solid rgba(255, 255, 255, .48);
+  border-radius: .6em;
+  color: white;
+  background: rgba(7, 27, 53, .48);
+  box-shadow: 0 8px 24px rgba(4, 18, 35, .2);
+  font-size: clamp(16px, 1.05vw, 19px);
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+}
+
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a:hover),
+.slide[data-effects~="ending-social"] .overlay .markdown :global(a:focus-visible) {
+  border-color: white;
+  background: rgba(39, 139, 195, .72);
+}
+
+@media (max-width: 899px) {
+  .slide[data-effects~="ending-social"] .overlay {
+    width: 100%;
+    justify-content: flex-end;
+    padding: 48px 7% 92px;
+  }
+
+  .slide[data-effects~="ending-social"] .overlay .markdown :global(p:first-child) {
+    max-width: 24ch;
   }
 }

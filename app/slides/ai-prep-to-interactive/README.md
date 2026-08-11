@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜HTML 簡報
 
-這份簡報採用「Markdown 內容分離方案」。40 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
+這份簡報採用「Markdown 內容分離方案」。42 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
 
 預覽路徑：`/slides/ai-prep-to-interactive`
 
@@ -25,10 +25,22 @@ layout: image-right
 image: /images/ai-prep-to-interactive/example.jpg
 imageAlt: 圖片的替代文字
 imageCaption: 顯示在圖片下方的圖說
+imageAspect: 3 / 2
+imageFit: cover
+imagePosition: center
 ---
 ```
 
 圖片檔名建議使用英文小寫與連字號。公開網站只應放可公開、已取得使用權的圖片；課程原始文件不要直接放進 `public/`。
+
+### 調整圖片比例與裁切
+
+- `imageAspect`：圖片框比例，例如正方形用 `1 / 1`、一般照片用 `3 / 2`、橫幅用 `16 / 9`。
+- `imageFit: cover`：填滿圖片框，邊緣可能被裁切，適合情境照片或插畫。
+- `imageFit: contain`：完整顯示圖片，可能留下空白，適合文件、教材、流程圖與介面截圖。
+- `imagePosition`：控制裁切焦點，例如 `center`、`left center`、`70% center`。
+
+生成新圖時，先看投影片圖片框比例，再要求 AI 使用相同比例，並把人物、文件與主要物件放在中央 80% 安全區。
 
 ## 新增、刪除與調整順序
 
@@ -85,7 +97,7 @@ npm.cmd run test:slides
 
 ## 操作方式
 
-- 下一張：方向鍵右／下、Page Down、空白鍵
+- 逐步顯示／下一張：方向鍵右／下、Page Down、空白鍵；有動畫內容時會先依序顯示，全部顯示後再翻頁
 - 上一張：方向鍵左／上、Page Up
 - 第一張／最後一張：Home／End
 - 全螢幕：按 `F`，或使用右下角按鈕

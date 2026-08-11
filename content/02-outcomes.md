@@ -4,6 +4,7 @@ layout: cards
 section: 今天的實作終點
 accent: teal
 animation: fade-up
+effects: cards-stagger
 ---
 
 - **課程藍圖** — 說清楚核心問題、活動與成果

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import CoverPage from "./pages/CoverPage";
 import Page01 from "./pages/Page01";
 import Page02 from "./pages/Page02";
@@ -46,9 +47,9 @@ export default function HandoutBook() {
   return (
     <>
       <nav className="topbar" aria-label="講義章節">
-        <a className="brand" href="/">
+        <Link className="brand" href="/">
           AI 教材工作坊
-        </a>
+        </Link>
         <div className="navlinks">
           {navItems.map(([id, label]) => (
             <a key={id} href={`#${id}`}>

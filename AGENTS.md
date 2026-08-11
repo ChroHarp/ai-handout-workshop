@@ -6,7 +6,7 @@
 
 ## 編修範圍與檔案隔離
 
-- 目前架構是「每張 A4 一個 React／TSX 頁面元件」，不是彼此無關的純 HTML 檔；入口頁只負責依序組合所有頁面。
+- `/` 是講義與簡報入口；`/handout` 以「每張 A4 一個 React／TSX 頁面元件」組合完整講義；`/slides/ai-prep-to-interactive` 由 `content/*.md` 產生簡報。
 - 每張頁面必須有穩定且唯一的頁面識別，例如 `data-page="p05"`。頁碼改變時，先確認內容身分，再更新索引與測試，不可只依賴舊有 `.page5`、`.page11` 等 class 名稱判斷頁次。
 - 單頁內容修改預設只可變更 `app/handout/pages/PageNN.tsx` 與 `app/handout/styles/PageNN.module.css`。若需要修改共用元件、共用 CSS、列印 CSS 或入口頁，必須先檢查所有頁面的影響。
 - 單頁排版使用該頁的 CSS Module 或以穩定頁面識別為範圍的局部規則；禁止為了修一頁而新增無範圍限制的全域選擇器。
@@ -24,10 +24,10 @@
 
 ## 專案檔案保護
 
-- 必須保留 `.openai/hosting.json` 的既有 `project_id`，不得建立或替換成另一個 Sites 專案。
-- `dist/` 與 `.vinext/` 是可重新產生的建置輸出或快取，不是內容原稿，不得直接編修。
-- `worker/`、`build/`、`scripts/`、Vite／Vinext／Next 設定及 lockfile 屬於部署骨架；除非建置需求明確，不得為了整理目錄而改寫。
-- `db/`、`drizzle/`、`examples/d1/`、`drizzle.config.ts` 與 `app/chatgpt-auth.ts` 是目前未啟用的選配功能。移除前必須同時檢查套件、建置設定與 lockfile，且完整建置通過。
+- GitHub `main` 是唯一原始碼來源，Vercel 是唯一正式部署平台。
+- `vercel.json`、`next.config.ts`、`package.json` 與 lockfile 是目前的部署骨架；修改後必須完成 Next.js 正式建置。
+- `.next/` 是可重新產生的建置輸出或快取，不是內容原稿，不得直接編修。
+- 遠端 Codex Sites 專案只作為歷史備份；本機不得重新加入 Sites、Vinext、Cloudflare Worker 或 D1 的雙軌建置，除非使用者重新明確要求。
 - `public/assets/` 中由講義引用的圖片不得因清理預設素材而刪除。
 
 ## 字級與基本排版

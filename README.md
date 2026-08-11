@@ -1,8 +1,14 @@
-# AI 備課到互動教材｜HTML 簡報
+# AI 備課到互動教材
 
-這個專案使用「Markdown 內容分離方案」。投影片文字放在 `content/`，圖片放在 `public/images/`，影片放在 `public/videos/`；一般內容修訂不需要修改 TSX。
+這個專案包含網站入口、A4 教學講義與 Markdown 驅動的 HTML 簡報。
 
-簡報網址：`/slides/ai-prep-to-interactive`
+- 網站入口：`/`
+- 教學講義：`/handout`
+- HTML 簡報：`/slides/ai-prep-to-interactive`
+- 原始碼來源：GitHub `main`
+- 正式部署：Vercel
+
+投影片文字放在 `content/`，圖片放在 `public/images/`，影片放在 `public/videos/`；一般內容修訂不需要修改 TSX。
 
 ## 修改投影片文字
 
@@ -113,7 +119,7 @@ npm.cmd run build
 
 - `npm.cmd install`：安裝相依套件。
 - `npm.cmd run dev`：啟動可即時更新的開發預覽。
-- `npm.cmd run build`：產生可部署的靜態網站至 `dist/`。
+- `npm.cmd run build`：產生 Vercel／Next.js 使用的正式建置。
 - `npm.cmd test`：建置並檢查 40 張 Markdown、版型與媒體檔案。
 
 ## Netlify 教學段落
@@ -122,3 +128,10 @@ npm.cmd run build
 - 第 34 頁是可重複練習的拖曳／點擊互動。
 - 第 35 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
 - 這段互動只模擬操作，不會登入 Netlify，也不會真的公開任何檔案。
+
+## GitHub 與 Vercel
+
+- GitHub `main` 是唯一原始碼來源。
+- Vercel 連接 GitHub，`main` 更新後自動部署。
+- 舊 Codex Sites 專案只保留在遠端作為歷史備份，不再作為編修或部署來源。
+- 本機不再保留 Sites、Vinext、Cloudflare Worker 或 D1 的建置架構。

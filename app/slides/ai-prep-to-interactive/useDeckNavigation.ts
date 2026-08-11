@@ -1,36 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  type MutableRefObject,
+} from "react";
 
 function indexFromHash(total: number) {
   const match = window.location.hash.match(/slide=(\d+)/);
   return match ? Math.min(Math.max(Number(match[1]) - 1, 0), total - 1) : 0;
 }
 
-export function useDeckNavigation(total: number) {
-  const [index, setIndex] = useState(0);
-  const [ready, setReady] = useState(false);
+export function useDeckNavigation(
+  total: number,
+  advanceEffectRef: MutableRefObject<() => boolean>,
+) {
+  const index = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("hashchange", onStoreChange);
+      return () => window.removeEventListener("hashchange", onStoreChange);
+    },
+    () => indexFromHash(total),
+    () => 0,
+  );
   const touchStart = useRef<number | null>(null);
 
   const goTo = useCallback(
-    (next: number) => setIndex(Math.min(Math.max(next, 0), total - 1)),
+    (next: number) => {
+      const target = Math.min(Math.max(next, 0), total - 1);
+      window.history.replaceState(null, "", `#slide=${target + 1}`);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    },
     [total],
   );
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
+  const next = useCallback(() => {
+    if (advanceEffectRef.current()) return;
+    goTo(index + 1);
+  }, [advanceEffectRef, goTo, index]);
   const previous = useCallback(() => goTo(index - 1), [goTo, index]);
-
-  useEffect(() => {
-    const syncFromHash = () => setIndex(indexFromHash(total));
-    syncFromHash();
-    setReady(true);
-    window.addEventListener("hashchange", syncFromHash);
-    return () => window.removeEventListener("hashchange", syncFromHash);
-  }, [total]);
-
-  useEffect(() => {
-    if (!ready) return;
-    window.history.replaceState(null, "", `#slide=${index + 1}`);
-  }, [index, ready]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

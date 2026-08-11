@@ -4,6 +4,7 @@ layout: cards
 section: Step 4｜加入互動並上線
 accent: orange
 animation: fade-up
+effects: cards-stagger
 ---
 
 - **放在哪一頁**
@@ -12,4 +13,4 @@ animation: fade-up
 - **操作後什麼會改變**
 - **如何重設與支援不同操作方式**
 
-先把一個互動說清楚，再加入完整簡報。
+單檔 HTML 能完成基礎互動；整合多頁、驗證多種裝置或反覆跨檔修改時，建議使用 Agent。

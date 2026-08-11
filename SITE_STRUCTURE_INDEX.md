@@ -1,25 +1,25 @@
 # AI 備課到互動教材｜網站交接與結構索引
 
-更新日期：2026-08-08
+更新日期：2026-08-10
 
 本文件是網站內容、頁面順序與檔案責任的索引。修改頁面、換頁、頁數、檔名或架構後，必須同步更新本文件。
 
 ## 目前狀態
 
-- 網站形式：Sites 上的 Vinext／React 單一路由網站。
-- 閱讀方式：全部 A4 頁面依序向下捲動。
+- 網站形式：Next.js 多路由網站，由 GitHub `main` 部署至 Vercel。
+- 入口頁提供「教學講義」與「HTML 簡報」兩個圖片按鈕；講義頁維持 A4 向下捲動閱讀。
 - 列印方式：一次列印或另存整份 A4 PDF。
 - 實際頁數：封面 1 張＋內容 14 張，共 15 張 `.sheet`。
 - 每張 A4 已拆成獨立 TSX 頁面元件；入口頁只負責載入講義閱讀器。
 - 單頁密度規則已移至各頁 CSS Module；共用視覺與列印規則仍由主 CSS 管理。
 - 自動測試已固定檢查15張頁面、目前掛載頁面順序及 Step 4 內容順序。
-- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；40 張投影片正文由根目錄 `content/*.md` 載入。
+- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；42 張投影片正文由根目錄 `content/*.md` 載入。
 
 ## 主要檔案
 
 | 路徑 | 用途 | 編修規則 |
 | --- | --- | --- |
-| `app/page.tsx` | 網站入口 | 只載入 `HandoutBook`，不放講義正文 |
+| `app/page.tsx` | 網站入口 | 提供講義與簡報兩個圖片入口 |
 | `app/handout/HandoutBook.tsx` | 頁面順序、頂端導覽、列印按鈕與溢位檢查 | 新增、刪除或調整頁序時才修改 |
 | `app/handout/components.tsx` | Page、Prompt、Callout、Checks、WriteBox 等共用元件 | 修改前必須評估全部16頁 |
 | `app/handout/pages/CoverPage.tsx` | 封面內容 | 只處理封面 |
@@ -28,14 +28,12 @@
 | `app/handout/styles/CoverPage.module.css` | 封面專屬樣式入口 | 只影響封面 |
 | `app/handout/styles/Page01.module.css`～`Page15.module.css` | 各頁局部密度與間距 | 單頁排版預設只改對應檔案 |
 | `public/assets/` | 講義實際使用圖片 | 修改檔名時同步更新頁面引用 |
-| `content/` | HTML 簡報的 40 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
+| `content/` | HTML 簡報的 42 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
 | `app/slides/ai-prep-to-interactive/` | Markdown 載入、版型、導覽與動畫 | 不放實際投影片正文 |
 | `public/images/ai-prep-to-interactive/` | HTML 簡報可公開圖片 | 只放已確認可公開的圖片，不放課程原始文件 |
-| `tests/rendered-html.test.mjs` | 頁數、頁序與內容順序驗收 | 必須與本索引一致 |
-| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 40 頁時應全部通過 |
+| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 42 頁時應全部通過 |
 | `AGENTS.md` | 後續代理與人工編修規準 | 架構或驗收方式改變時同步更新 |
-| `.openai/hosting.json` | Sites 專案綁定 | 保留既有 `project_id` |
-| `dist/` | 已驗證建置輸出 | 可重建，不可直接編修 |
+| `vercel.json` | Vercel 專案設定 | 使用 Next.js 與 `npm run build` |
 
 ## 目前檔案結構
 
@@ -62,13 +60,13 @@ app/
 public/
   assets/
 tests/
-  rendered-html.test.mjs
+  slides-markdown.test.mjs
 ```
 
 ## HTML 簡報
 
 - 預覽路徑：`/slides/ai-prep-to-interactive`
-- 內容來源：`content/01-cover.md`～`content/40-next-date.md`
+- 內容來源：`content/01-cover.md`～`content/42-ending.md`
 - 圖片位置：`public/images/ai-prep-to-interactive/`
 - 編修說明：`app/slides/ai-prep-to-interactive/README.md`
 - React／TSX 只負責版型、Markdown 呈現、翻頁與動畫；投影片可見文字不得移入程式檔。
@@ -111,32 +109,31 @@ tests/
 
 ## 本機接手與建置
 
-套件未包含於交接資料，依 `package-lock.json` 安裝。Google Drive 同步資料夾可能鎖定大量 `node_modules` 小檔案；若發生此情況，建議把整個專案複製到一般本機資料夾後再安裝與建置。
-
-Sites 的正式建置環境執行：
-
-```bash
-npm ci
-npm run build
-```
-
-Windows 本機若沒有 Bash，可直接執行 Vite production build，再執行 rendered HTML 測試：
+GitHub `main` 是唯一原始碼來源。第一次使用先安裝套件：
 
 ```powershell
-node_modules\.bin\vite.cmd build
-node --test tests\rendered-html.test.mjs
+npm.cmd install
 ```
+
+啟動預覽與正式驗證：
+
+```powershell
+npm.cmd run dev
+npm.cmd test
+```
+
+Vercel 已連接 GitHub；`main` 更新後由 Vercel 自動建置與部署。
 ## 已完成驗收
 
-- Vinext／Vite production build 成功。
-- 2 項 rendered HTML 自動測試通過。
+- Next.js production build 成功。
+- 3 項 Markdown 與媒體檔案測試通過。
 - 目前為15張 `.sheet`：封面1張＋內容14張。
 - 原 P11–P13 的操作內容全部保留，整併為目前的 P11 與 P12。
 - 2026-08-05 以 Edge 列印引擎輸出 A4 PDF：共 15 頁、無空白頁；P11 登入區維持左右雙欄，所有頁尾均留在各自頁盒內。
 
 ## 建置與部署邊界
 
-- 本地編修完成前不部署到 Sites。
-- 部署時沿用 `.openai/hosting.json` 中的既有 Sites 專案。
-- `dist/` 與 `.vinext/` 可重新產生，不能作為內容來源。
-- Google Drive 同步資料夾不適合直接保存大量 `node_modules` 小檔案；若安裝被鎖定，將原始碼複製到一般本機資料夾建置，再把驗證結果或 `dist/` 同步回專案。
+- GitHub `main` 是唯一原始碼來源。
+- Vercel 是唯一正式部署平台；推送至 `main` 後自動部署。
+- 遠端 Codex Sites 專案僅保留作為歷史備份，不再同步或編修。
+- `.next/` 是可重新產生的 Next.js 建置輸出，不可作為內容來源。

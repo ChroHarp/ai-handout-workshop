@@ -1,14 +1,17 @@
 "use client";
 
+import { useRef, useState } from "react";
 import type { Slide } from "./types";
 import NetlifyPractice from "./NetlifyPractice";
 import { useDeckNavigation } from "./useDeckNavigation";
+import { useSlideEffects } from "./useSlideEffects";
 import styles from "./deck.module.css";
 
 function Markdown({ html }: { html: string }) {
   return (
     <div
       className={styles.markdown}
+      data-role="slide-markdown"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -17,7 +20,7 @@ function Markdown({ html }: { html: string }) {
 function SlideMedia({ slide }: { slide: Slide }) {
   if (slide.video) {
     return (
-      <figure className={styles.figure}>
+      <figure className={styles.figure} data-role="slide-media">
         <video src={slide.video} controls muted playsInline preload="metadata" />
         {slide.videoCaption ? <figcaption>{slide.videoCaption}</figcaption> : null}
       </figure>
@@ -27,10 +30,56 @@ function SlideMedia({ slide }: { slide: Slide }) {
   if (!slide.image) return null;
 
   return (
-    <figure className={styles.figure}>
-      <img src={slide.image} alt={slide.imageAlt || ""} />
+    <figure
+      className={styles.figure}
+      data-role="slide-media"
+      style={
+        slide.imageAspect
+          ? {
+              aspectRatio: slide.imageAspect,
+              height: "auto",
+              maxHeight: "100%",
+              justifySelf: "center",
+            }
+          : undefined
+      }
+    >
+      <img
+        src={slide.image}
+        alt={slide.imageAlt || ""}
+        style={{
+          objectFit: slide.imageFit || "cover",
+          objectPosition: slide.imagePosition || "center",
+        }}
+      />
       {slide.imageCaption ? <figcaption>{slide.imageCaption}</figcaption> : null}
     </figure>
+  );
+}
+
+function CoverQr({ slide }: { slide: Slide }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!slide.qrImage) return null;
+
+  return (
+    <button
+      type="button"
+      className={[
+        styles.coverQr,
+        expanded ? styles.coverQrExpanded : null,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={() => setExpanded((current) => !current)}
+      aria-label={slide.qrAlt || slide.qrLabel || ""}
+      aria-expanded={expanded}
+    >
+      <figure>
+        <img src={slide.qrImage} alt={slide.qrAlt || ""} />
+        {slide.qrLabel ? <figcaption>{slide.qrLabel}</figcaption> : null}
+      </figure>
+    </button>
   );
 }
 
@@ -41,6 +90,7 @@ function SlideContent({ slide }: { slide: Slide }) {
     return (
       <>
         {media}
+        <CoverQr slide={slide} />
         <div className={styles.overlay}>
           {slide.eyebrow ? <p className={styles.eyebrow}>{slide.eyebrow}</p> : null}
           <h1>{slide.title}</h1>
@@ -52,7 +102,7 @@ function SlideContent({ slide }: { slide: Slide }) {
 
   if (slide.layout === "image-left" || slide.layout === "image-right") {
     return (
-      <div className={styles.mediaLayout}>
+      <div className={styles.mediaLayout} data-role="media-layout">
         {slide.layout === "image-left" ? media : null}
         <Markdown html={slide.html} />
         {slide.layout === "image-right" ? media : null}
@@ -88,8 +138,13 @@ function SlideContent({ slide }: { slide: Slide }) {
 }
 
 export default function SlideDeck({ slides }: { slides: Slide[] }) {
-  const { index, next, previous, touchHandlers } = useDeckNavigation(slides.length);
+  const advanceEffectRef = useRef<() => boolean>(() => false);
+  const { index, next, previous, touchHandlers } = useDeckNavigation(
+    slides.length,
+    advanceEffectRef,
+  );
   const slide = slides[index];
+  const articleRef = useSlideEffects(slide, advanceEffectRef);
 
   if (!slide) return null;
 
@@ -101,13 +156,16 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
       {...touchHandlers}
     >
       <article
+        ref={articleRef}
         key={slide.fileName}
+        data-effects={slide.effects}
         className={[
           styles.slide,
           styles[`layout${slide.layout
             .split("-")
             .map((part) => part[0].toUpperCase() + part.slice(1))
             .join("")}`],
+          slide.contentSize === "large" ? styles.contentLarge : null,
           styles[slide.animation || "fade-up"],
         ]
           .filter(Boolean)
