@@ -406,6 +406,18 @@
   height: auto;
 }
 
+.layoutPrompt .markdown :global(h2) {
+  width: min(100%, 54ch);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.layoutPrompt .markdown > :global(p) {
+  width: min(100%, 54ch);
+  margin-inline: auto;
+  text-align: center;
+}
+
 .layoutPrompt .markdown :global(blockquote) {
   width: min(100%, 54ch);
   margin-inline: auto;
