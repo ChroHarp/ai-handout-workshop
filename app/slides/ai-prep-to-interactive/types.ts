@@ -12,6 +12,7 @@ export const layouts = [
   "folder-tree",
   "full-image",
   "netlify-practice",
+  "interactive-demo",
 ] as const;
 
 export type SlideLayout = (typeof layouts)[number];
@@ -35,6 +36,10 @@ export type Slide = {
   qrLink?: string;
   video?: string;
   videoCaption?: string;
+  embedUrl?: string;
+  embedTitle?: string;
+  externalUrl?: string;
+  externalLabel?: string;
   sourceLabel?: string;
   targetLabel?: string;
   successMessage?: string;

@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = process.cwd();
 const contentDirectory = path.join(root, "content");
-const allowedLayouts = new Set(["cover","text","bullets","two-columns","image-left","image-right","cards","table","quote","prompt","folder-tree","full-image","netlify-practice"]);
+const allowedLayouts = new Set(["cover","text","bullets","two-columns","image-left","image-right","cards","table","quote","prompt","folder-tree","full-image","netlify-practice","interactive-demo"]);
 
 function frontMatter(source) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -16,10 +16,10 @@ function frontMatter(source) {
   }));
 }
 
-test("簡報包含依序命名的 42 個 Markdown 檔案", async () => {
+test("簡報包含依序命名的 43 個 Markdown 檔案", async () => {
   const files = (await readdir(contentDirectory)).filter((name) => /^\d{2}-[a-z0-9-]+\.md$/.test(name)).sort();
-  assert.equal(files.length, 42);
-  assert.deepEqual(files.map((name) => name.slice(0, 2)), Array.from({ length: 42 }, (_, index) => String(index + 1).padStart(2, "0")));
+  assert.equal(files.length, 43);
+  assert.deepEqual(files.map((name) => name.slice(0, 2)), Array.from({ length: 43 }, (_, index) => String(index + 1).padStart(2, "0")));
 });
 
 test("每張投影片都有標題、合法版型與存在的圖片", async () => {

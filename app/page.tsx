@@ -9,7 +9,7 @@ const resources = [
     title: "教學講義",
     description: "依照完整流程閱讀課程規劃、講義製作、互動設計與上線步驟。",
     action: "閱讀講義",
-    image: "/images/ai-prep-to-interactive/scenario-p14-v2.png",
+    image: "/images/home/handout-card.png",
     imageAlt: "桌面上的教學講義與活動工作頁",
     priority: true,
   },

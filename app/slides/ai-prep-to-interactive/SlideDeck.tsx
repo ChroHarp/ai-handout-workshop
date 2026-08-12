@@ -120,6 +120,31 @@ function SlideContent({ slide }: { slide: Slide }) {
     );
   }
 
+  if (slide.layout === "interactive-demo") {
+    return (
+      <div className={styles.interactiveDemo}>
+        <iframe
+          src={slide.embedUrl}
+          title={slide.embedTitle || slide.title}
+          loading="eager"
+          allow="fullscreen"
+        />
+        {slide.externalUrl ? (
+          <a
+            className={styles.interactiveDemoLink}
+            href={slide.externalUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {slide.externalLabel || "另開互動頁面"}
+            <span aria-hidden="true">↗</span>
+          </a>
+        ) : null}
+        <Markdown html={slide.html} />
+      </div>
+    );
+  }
+
   if (slide.layout === "netlify-practice") {
     return (
       <div className={styles.practiceLayout}>
