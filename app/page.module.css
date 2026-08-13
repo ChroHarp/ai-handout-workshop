@@ -12,7 +12,7 @@
 }
 
 .intro { text-align: center; }
-.kicker, .lead, .footer { margin: 0; }
+.kicker, .lead { margin: 0; }
 
 .kicker {
   color: #69ddd4;
@@ -141,18 +141,63 @@
 .card:hover .action b { transform: translateX(5px); }
 
 .footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   color: rgba(222,238,243,.72);
   font-size: 15px;
   text-align: center;
 }
+
+.footer p { margin: 0; }
+
+.homeQr {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px 10px 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 16px;
+  color: white;
+  background: rgba(255,255,255,.08);
+  text-align: left;
+  text-decoration: none;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.homeQr:hover,
+.homeQr:focus-visible {
+  border-color: #69ddd4;
+  background: rgba(255,255,255,.13);
+  transform: translateY(-2px);
+}
+
+.homeQr:focus-visible {
+  outline: 3px solid rgba(105,221,212,.35);
+  outline-offset: 4px;
+}
+
+.homeQr img {
+  width: 84px;
+  height: 84px;
+  display: block;
+  border-radius: 8px;
+  background: white;
+}
+
+.homeQr span { display: grid; gap: 3px; }
+.homeQr strong { color: white; font-size: 17px; }
+.homeQr small { color: #bcd1dc; font-size: 12px; }
 
 @media (max-width: 760px) {
   .portal { padding-inline: 5%; }
   .intro h1 { font-size: clamp(40px, 11vw, 56px); }
   .cards { grid-template-columns: 1fr; }
   .copy { min-height: 210px; }
+  .homeQr small { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .imageWrap img, .action b { transition: none; }
+  .card, .imageWrap img, .action b, .homeQr { transition: none; }
 }

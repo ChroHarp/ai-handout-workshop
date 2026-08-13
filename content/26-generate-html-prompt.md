@@ -4,7 +4,7 @@ layout: prompt
 section: Step 3｜製作 HTML 簡報
 accent: gold
 animation: fade-up
-effects: typewriter
+effects: typewriter reserve-typewriter-space
 ---
 
 ## 隆老師的提示詞

@@ -10,7 +10,7 @@ imageFit: cover
 imagePosition: center
 accent: orange
 animation: fade-up
-effects: background-media image-heading-typewriter-copy
+effects: background-media image-heading-typewriter-copy reserve-typewriter-space
 ---
 
 ## 隆老師的提示語

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import HomeQr from "./HomeQr";
 import styles from "./page.module.css";
 
 const resources = [
@@ -59,7 +60,8 @@ export default function Home() {
       </section>
 
       <footer className={styles.footer}>
-        教育部資優央團輔導員　平興國中 陳隆期老師
+        <HomeQr />
+        <p>教育部資優央團輔導員　平興國中 陳隆期老師</p>
       </footer>
     </main>
   );

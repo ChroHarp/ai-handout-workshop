@@ -2,6 +2,8 @@
 
 這個專案包含網站入口、A4 教學講義與 Markdown 驅動的 HTML 簡報。
 
+最新開發進度與下次 session 接手說明：[`DEVELOPMENT_HANDOFF.md`](./DEVELOPMENT_HANDOFF.md)
+
 - 網站入口：`/`
 - 教學講義：`/handout`
 - HTML 簡報：`/slides/ai-prep-to-interactive`
@@ -64,7 +66,7 @@ videoCaption: 影片操作說明
 - 刪除：刪除對應的 Markdown 檔案。
 - 調整順序：修改檔名前兩碼，並保持從 `01` 開始連續編號。
 
-目前共有 40 張投影片。調整數量後，請同步更新 `tests/slides-markdown.test.mjs` 的預期頁數。
+目前共有 43 張投影片。調整數量後，請同步更新 `tests/slides-markdown.test.mjs` 的預期頁數。
 
 ## 切換版型
 
@@ -82,6 +84,7 @@ videoCaption: 影片操作說明
 - `folder-tree`：專案資料夾層級
 - `full-image`：全版圖片與短句
 - `netlify-practice`：Netlify 資料夾拖曳練習
+- `interactive-demo`：嵌入單獨 HTML 互動範例
 
 畫面寬度低於 900px 時，雙欄、多欄與互動版型會自動改成單欄。
 
@@ -120,13 +123,13 @@ npm.cmd run build
 - `npm.cmd install`：安裝相依套件。
 - `npm.cmd run dev`：啟動可即時更新的開發預覽。
 - `npm.cmd run build`：產生 Vercel／Next.js 使用的正式建置。
-- `npm.cmd test`：建置並檢查 40 張 Markdown、版型與媒體檔案。
+- `npm.cmd test`：建置並檢查 43 張 Markdown、版型與媒體檔案。
 
 ## Netlify 教學段落
 
-- 第 32–36 頁是五個逐步操作頁。
-- 第 34 頁是可重複練習的拖曳／點擊互動。
-- 第 35 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
+- 第 34–38 頁是五個逐步操作頁。
+- 第 36 頁是可重複練習的拖曳／點擊互動。
+- 第 37 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
 - 這段互動只模擬操作，不會登入 Netlify，也不會真的公開任何檔案。
 
 ## GitHub 與 Vercel

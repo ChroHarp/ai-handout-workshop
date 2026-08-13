@@ -18,7 +18,7 @@ function fadeIn(element: Element | null, delay = 0, duration = 560) {
   });
 }
 
-function typewrite(element: Element | null, startDelay = 0) {
+function typewrite(element: Element | null, startDelay = 0, reserveSpace = false) {
   if (!(element instanceof HTMLElement)) return { cleanup: () => {}, duration: 0 };
 
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
@@ -30,6 +30,10 @@ function typewrite(element: Element | null, startDelay = 0) {
   }
 
   const originals = textNodes.map((node) => node.textContent || "");
+  const reservedHeight = reserveSpace
+    ? Math.ceil(element.getBoundingClientRect().height)
+    : 0;
+  if (reservedHeight) element.style.minHeight = reservedHeight + "px";
   const totalCharacters = originals.reduce((sum, text) => sum + text.length, 0);
   const intervalMs = Math.max(8, Math.min(24, Math.floor(2800 / Math.max(totalCharacters, 1))));
   const duration = totalCharacters * intervalMs;
@@ -70,6 +74,7 @@ function typewrite(element: Element | null, startDelay = 0) {
         node.textContent = originals[index];
       });
       element.style.opacity = "";
+      element.style.minHeight = "";
       element.removeAttribute("aria-label");
     },
   };
@@ -148,7 +153,11 @@ export function useSlideEffects(
           element.style.transform = "";
 
           if (element === typewriterElement) {
-            const typed = typewrite(element);
+            const typed = typewrite(
+              element,
+              0,
+              effects.has("reserve-typewriter-space"),
+            );
             cleanups.push(typed.cleanup);
             return;
           }
@@ -302,6 +311,7 @@ export function useSlideEffects(
       cleanups.forEach((cleanup) => cleanup());
       hidden.forEach((element) => {
         element.style.opacity = "";
+      element.style.minHeight = "";
         element.style.visibility = "";
         element.style.transform = "";
       });

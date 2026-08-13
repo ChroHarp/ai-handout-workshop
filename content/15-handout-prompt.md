@@ -4,7 +4,7 @@ layout: prompt
 section: Step 2｜製作講義與學習單
 accent: blue
 animation: fade-up
-effects: typewriter
+effects: typewriter reserve-typewriter-space
 ---
 
 ## 隆老師的提示語

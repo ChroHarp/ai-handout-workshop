@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜網站交接與結構索引
 
-更新日期：2026-08-10
+更新日期：2026-08-13
 
 本文件是網站內容、頁面順序與檔案責任的索引。修改頁面、換頁、頁數、檔名或架構後，必須同步更新本文件。
 
@@ -13,25 +13,26 @@
 - 每張 A4 已拆成獨立 TSX 頁面元件；入口頁只負責載入講義閱讀器。
 - 單頁密度規則已移至各頁 CSS Module；共用視覺與列印規則仍由主 CSS 管理。
 - 自動測試已固定檢查15張頁面、目前掛載頁面順序及 Step 4 內容順序。
-- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；42 張投影片正文由根目錄 `content/*.md` 載入。
+- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；43 張投影片正文由根目錄 `content/*.md` 載入。
 
 ## 主要檔案
 
 | 路徑 | 用途 | 編修規則 |
 | --- | --- | --- |
-| `app/page.tsx` | 網站入口 | 提供講義與簡報兩個圖片入口 |
+| `app/page.tsx` | 網站入口 | 提供講義與簡報兩個圖片入口，並掛載正式網站 QR |
+| `app/HomeQr.tsx` | 首頁正式網站 QR | 使用 `public/images/home/site-qr.png`，固定連到正式網址 |
 | `app/handout/HandoutBook.tsx` | 頁面順序、頂端導覽、列印按鈕與溢位檢查 | 新增、刪除或調整頁序時才修改 |
-| `app/handout/components.tsx` | Page、Prompt、Callout、Checks、WriteBox 等共用元件 | 修改前必須評估全部16頁 |
+| `app/handout/components.tsx` | Page、Prompt、Callout、Checks、WriteBox 等共用元件 | 修改前必須評估全部15頁 |
 | `app/handout/pages/CoverPage.tsx` | 封面內容 | 只處理封面 |
 | `app/handout/pages/Page01.tsx`～`Page15.tsx` | 每張 A4 的獨立正文 | 單頁內容預設只改對應檔案 |
 | `app/globals.css` | 色彩、字級、A4、共用元件、手機與列印規則 | 修改前必須評估全部頁面 |
 | `app/handout/styles/CoverPage.module.css` | 封面專屬樣式入口 | 只影響封面 |
 | `app/handout/styles/Page01.module.css`～`Page15.module.css` | 各頁局部密度與間距 | 單頁排版預設只改對應檔案 |
 | `public/assets/` | 講義實際使用圖片 | 修改檔名時同步更新頁面引用 |
-| `content/` | HTML 簡報的 42 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
+| `content/` | HTML 簡報的 43 張 Markdown 內容 | 依兩位數字檔名排序；可修改文字、圖片、版型、配色與動畫 |
 | `app/slides/ai-prep-to-interactive/` | Markdown 載入、版型、導覽與動畫 | 不放實際投影片正文 |
 | `public/images/ai-prep-to-interactive/` | HTML 簡報可公開圖片 | 只放已確認可公開的圖片，不放課程原始文件 |
-| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 42 頁時應全部通過 |
+| `tests/slides-markdown.test.mjs` | HTML 簡報檔名、front matter 與圖片驗收 | 維持 43 頁時應全部通過 |
 | `AGENTS.md` | 後續代理與人工編修規準 | 架構或驗收方式改變時同步更新 |
 | `vercel.json` | Vercel 專案設定 | 使用 Next.js 與 `npm run build` |
 
@@ -66,10 +67,13 @@ tests/
 ## HTML 簡報
 
 - 預覽路徑：`/slides/ai-prep-to-interactive`
-- 內容來源：`content/01-cover.md`～`content/42-ending.md`
+- 內容來源：`content/01-cover.md`～`content/43-ending.md`
 - 圖片位置：`public/images/ai-prep-to-interactive/`
 - 編修說明：`app/slides/ai-prep-to-interactive/README.md`
 - React／TSX 只負責版型、Markdown 呈現、翻頁與動畫；投影片可見文字不得移入程式檔。
+- P31 為 iframe 互動展示頁，嵌入 `public/example/point_light_shadow_projection.html`；P43 為 Ending。
+- 簡報背景預載目前頁後方兩頁的圖片與 QR，避免一次下載全部 43 頁。
+- P1 與網站首頁共用 `public/images/home/site-qr.png`，連到正式網站。
 ## 講義頁面順序
 
 頁次以正文頁腳為準；封面不計入正文頁碼。
@@ -105,7 +109,7 @@ tests/
 2. 文字或結構只改對應的 `app/handout/pages/PageNN.tsx`。
 3. 局部密度與間距只改對應的 `app/handout/styles/PageNN.module.css`。
 4. 除非確定要影響全部頁面，不修改 `app/globals.css` 或 `app/handout/components.tsx`。
-5. 修改後重新建置，確認16頁順序、內容順序與溢位狀態。
+5. 修改後重新建置，確認15頁順序、內容順序與溢位狀態。
 
 ## 本機接手與建置
 

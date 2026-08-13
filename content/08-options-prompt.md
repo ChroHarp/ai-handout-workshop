@@ -4,7 +4,7 @@ layout: prompt
 section: Step 1｜規劃課程
 accent: teal
 animation: fade-up
-effects: typewriter
+effects: typewriter reserve-typewriter-space
 ---
 
 ## 隆老師的提示語

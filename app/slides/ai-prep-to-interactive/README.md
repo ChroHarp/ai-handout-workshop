@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜HTML 簡報
 
-這份簡報採用「Markdown 內容分離方案」。42 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
+這份簡報採用「Markdown 內容分離方案」。43 張投影片的可見文字都在專案根目錄的 `content/`；React 只負責讀取內容、套用版型、翻頁與動畫。
 
 預覽路徑：`/slides/ai-prep-to-interactive`
 
@@ -64,6 +64,8 @@ front matter 的 `layout` 可使用：
 - `prompt`
 - `folder-tree`
 - `full-image`
+- `netlify-practice`
+- `interactive-demo`
 
 雙欄版型用 `<!-- column -->` 分隔左右內容。動畫可設定為 `fade-up`、`fade-in` 或 `slide-left`；配色可設定為 `teal`、`blue`、`orange` 或 `gold`。
 
@@ -110,3 +112,10 @@ npm.cmd run test:slides
 - Netlify 畫面：沿用原講義專案的 `public/assets/netlify-drop.jpg`。
 
 這一版未把課程計畫、講義、工作頁或其他原始文件放入 `public/`，避免 build 後意外公開。需要提供成品下載時，請先確認公開範圍，再加入已核准的網址。
+
+## 近期互動與效能設定
+
+- `SlideDeck.tsx` 會預載目前頁後方兩頁的 `image` 與 `qrImage`，不要改成一次預載全部投影片。
+- P31 使用 `interactive-demo` 版型，嵌入 `/example/point_light_shadow_projection.html`。
+- 打字機頁面若因文字逐字增加造成版面跳動，可在 `effects` 加上 `reserve-typewriter-space`；目前只套用 P5、P8、P15、P22、P26。
+- P1 與網站首頁共用 `/images/home/site-qr.png`，連到正式網站 `https://ai-handout-workshop.vercel.app/`。

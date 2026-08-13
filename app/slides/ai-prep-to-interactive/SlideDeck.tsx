@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Slide } from "./types";
 import NetlifyPractice from "./NetlifyPractice";
 import { useDeckNavigation } from "./useDeckNavigation";
@@ -170,6 +170,21 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
   );
   const slide = slides[index];
   const articleRef = useSlideEffects(slide, advanceEffectRef);
+  useEffect(() => {
+    const sources = new Set(
+      slides.slice(index + 1, index + 3).flatMap((upcomingSlide) =>
+        [upcomingSlide.image, upcomingSlide.qrImage].filter(
+          (source): source is string => Boolean(source),
+        ),
+      ),
+    );
+
+    for (const source of sources) {
+      const image = new window.Image();
+      image.decoding = "async";
+      image.src = source;
+    }
+  }, [index, slides]);
 
   if (!slide) return null;
 
