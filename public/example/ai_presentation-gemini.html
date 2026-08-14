@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 備課到互動教材｜從課程構想到教材上線</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        macaron: {
+                            cream: '#FAF7F2',
+                            card: '#FFFFFF',
+                            pink: '#FFDFD3',
+                            pinkDark: '#E8A598',
+                            peach: '#FFE5EC',
+                            peachDark: '#F4A261',
+                            yellow: '#FEF9C3',
+                            yellowDark: '#EAB308',
+                            mint: '#E8F5E9',
+                            mintDark: '#52B788',
+                            lavender: '#F3E8FF',
+                            lavenderDark: '#9333EA',
+                            sky: '#E0F2FE',
+                            skyDark: '#0284C7',
+                            slate: '#475569',
+                            charcoal: '#1E293B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        mono: ['Fira Code', 'Courier New', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #FAF7F2;
+            color: #1E293B;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Slide Transitions */
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: scale(0.98) translateY(10px);
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Staggered Delay Fade In Animations for Active Slide Items */
+        @keyframes fadeInUpStagger {
+            0% {
+                opacity: 0;
+                transform: translateY(22px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide.active .fade-in-stagger {
+            opacity: 0;
+            animation: fadeInUpStagger 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .slide.active .delay-1 { animation-delay: 0.08s; }
+        .slide.active .delay-2 { animation-delay: 0.18s; }
+        .slide.active .delay-3 { animation-delay: 0.28s; }
+        .slide.active .delay-4 { animation-delay: 0.38s; }
+        .slide.active .delay-5 { animation-delay: 0.48s; }
+        .slide.active .delay-6 { animation-delay: 0.58s; }
+
+        /* Card & Glass Aesthetics */
+        .macaron-card {
+            background: #FFFFFF;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(224, 214, 201, 0.35), 0 8px 10px -6px rgba(224, 214, 201, 0.2);
+        }
+
+        .macaron-card-hover {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .macaron-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 28px -4px rgba(210, 190, 170, 0.45);
+        }
+
+        /* Step Badge Styling */
+        .step-tag-s0 { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+        .step-tag-s1 { background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE; }
+        .step-tag-s2 { background: #FFE5EC; color: #C2185B; border: 1px solid #F8BBD0; }
+        .step-tag-s3 { background: #E0F2FE; color: #0284C7; border: 1px solid #7DD3FC; }
+        .step-tag-s4 { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+        .step-tag-ext { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+
+        .prompt-box {
+            background: #FFFDF9;
+            border: 1px solid #F3E8FF;
+            border-left: 5px solid #A855F7;
+            font-family: 'Fira Code', 'Noto Sans TC', monospace;
+            box-shadow: 0 8px 20px -4px rgba(168, 85, 247, 0.12);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #FAF7F2; }
+        ::-webkit-scrollbar-thumb { background: #F4A261; border-radius: 4px; }
+
+        @media print {
+            body { overflow: visible !important; background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .slide { display: flex !important; opacity: 1 !important; transform: none !important; page-break-after: always; height: 100vh !important; width: 100vw !important; border-bottom: 2px solid #ccc; }
+        }
+    </style>
+</head>
+<body class="bg-macaron-cream text-macaron-charcoal h-screen w-screen relative flex flex-col justify-between select-none">
+
+    <!-- Top Navigation Bar -->
+    <header class="no-print h-14 px-4 sm:px-6 flex items-center justify-between z-30 bg-white/80 backdrop-blur-md border-b border-amber-100/80 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-300 via-pink-300 to-purple-300 flex items-center justify-center font-bold text-slate-700 shadow-sm">
+                <i class="fa-solid fa-chalkboard-user text-sm text-slate-800"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-bold text-sm sm:text-base text-slate-800 leading-tight">AI 備課到互動教材</span>
+                <span class="text-[10px] sm:text-xs text-orange-600 font-medium tracking-wide">從課程構想到教材上線</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <span id="current-step-badge" class="px-3 py-1 rounded-full text-xs font-bold step-tag-ext hidden sm:inline-block shadow-sm">
+                開場
+            </span>
+            <button onclick="toggleNotionEditor()" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 transition flex items-center gap-1.5 border border-amber-200" title="Notion 備課大綱編輯器 (Key: E)">
+                <i class="fa-solid fa-pen-to-square text-amber-600"></i>
+                <span class="hidden md:inline">Notion 大綱</span>
+            </button>
+            <button onclick="toggleGridView()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-amber-100/50 rounded-xl transition" title="投影片總覽 (Key: O)">
+                <i class="fa-solid fa-border-all"></i>
+            </button>
+            <button onclick="toggleSpeakerNotes()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-amber-100/50 rounded-xl transition" title="講者備忘錄 (Key: N)">
+                <i class="fa-solid fa-note-sticky text-amber-500"></i>
+            </button>
+            <button onclick="toggleFullscreen()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-amber-100/50 rounded-xl transition" title="全螢幕 (Key: F)">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+            <button onclick="window.print()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-amber-100/50 rounded-xl transition" title="匯出 PDF">
+                <i class="fa-solid fa-file-pdf text-rose-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Presentation Container -->
+    <main id="slide-container" class="relative flex-1 w-full h-full flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-hidden">
+
+        <!-- SLIDE 01: Cover -->
+        <section class="slide active w-full max-w-6xl h-full flex-col justify-center items-center text-center p-6 relative" data-step="開場" data-step-class="step-tag-ext">
+            <div class="absolute inset-0 bg-gradient-to-tr from-pink-100/60 via-amber-100/40 to-sky-100/60 blur-3xl rounded-full -z-10 pointer-events-none"></div>
+            
+            <span class="fade-in-stagger delay-1 px-4 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 mb-6 tracking-widest uppercase shadow-sm">
+                臺北市新進教師與實務備課研習
+            </span>
+            
+            <h1 class="fade-in-stagger delay-2 text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-slate-800 mb-6 leading-tight">
+                AI 備課到互動教材 <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600">從課程構想到教材上線</span>
+            </h1>
+            
+            <p class="fade-in-stagger delay-3 text-base sm:text-xl text-slate-600 max-w-3xl mb-10 leading-relaxed font-normal">
+                跟著隆老師的實作歷程，一步步完成課程藍圖、講義、學習單、HTML 簡報、互動頁面與公開分享網址。
+            </p>
+            
+            <div class="fade-in-stagger delay-4 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-700">
+                <div class="flex items-center gap-2 bg-white/90 px-5 py-2.5 rounded-2xl shadow-sm border border-amber-100">
+                    <i class="fa-solid fa-user-graduate text-orange-500"></i>
+                    <span class="font-medium">講師：隆老師團隊</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/90 px-5 py-2.5 rounded-2xl shadow-sm border border-amber-100">
+                    <i class="fa-solid fa-chalkboard text-purple-500"></i>
+                    <span class="font-medium">對象：臺北市新進教師及全體教師</span>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="【研習開場】說明研習主題。強調今日重點不在於學習複雜的程式碼，而是透過 AI 當助手，完整體驗從『課程想法』到產出『可供學生互動的網頁教材』。"></div>
+        </section>
+
+        <!-- SLIDE 02: Six Deliverables Roadmap -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="開場" data-step-class="step-tag-ext">
+            <div class="mb-8">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-500 block mb-1">Roadmap</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl sm:text-4xl font-extrabold text-slate-800">完成一套可繼續修改的教材</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">今天將依序產出並帶走這六項實質成果</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                <div class="fade-in-stagger delay-1 macaron-card macaron-card-hover p-5 border-l-4 border-indigo-400">
+                    <div class="text-indigo-600 text-xs font-bold mb-1">Step 1</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-map mr-2 text-indigo-400"></i>課程藍圖</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">SEL 光影奇航營隊架構、目標與時間表</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card macaron-card-hover p-5 border-l-4 border-purple-400">
+                    <div class="text-purple-600 text-xs font-bold mb-1">Step 2</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-book-open mr-2 text-purple-400"></i>學生講義</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">光影藝術基本介紹與圖文步驟整理</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card macaron-card-hover p-5 border-l-4 border-rose-400">
+                    <div class="text-rose-600 text-xs font-bold mb-1">Step 2</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-pen-ruler mr-2 text-rose-400"></i>活動學習單</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">包含觀察、推理、選擇與情緒反思</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card macaron-card-hover p-5 border-l-4 border-emerald-400">
+                    <div class="text-emerald-600 text-xs font-bold mb-1">Step 3</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-desktop mr-2 text-emerald-400"></i>HTML 簡報</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">每頁聚焦單一訊息，支援跨裝置瀏覽</p>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card macaron-card-hover p-5 border-l-4 border-amber-400">
+                    <div class="text-amber-600 text-xs font-bold mb-1">Step 4</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-sliders mr-2 text-amber-400"></i>互動模擬頁面</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">動態調整光源與角度的光學影子實驗</p>
+                </div>
+                <div class="fade-in-stagger delay-6 macaron-card macaron-card-hover p-5 border-l-4 border-sky-400">
+                    <div class="text-sky-600 text-xs font-bold mb-1">Step 4</div>
+                    <div class="text-base sm:text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-globe mr-2 text-sky-400"></i>分享網址與原稿</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">Netlify 免費部署網址與本機完全控制檔</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="讓參與者先知道實作終點。這六項成果權利完全留存於本機，讓老師課後能持續編修。"></div>
+        </section>
+
+        <!-- SLIDE 03: Step 0 - Current Idea -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 0｜準備" data-step-class="step-tag-s0">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Step 0. 開始前的準備</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">整理目前的課程構想</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="fade-in-stagger delay-2 macaron-card p-6 border-emerald-100">
+                    <h3 class="text-lg font-bold text-emerald-700 mb-3"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i>情境背景：隆老師的任務</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        隆老師接到暑期 SEL（社會情緒學習）資優營隊邀約。目前已知對象為國中資優生，想從「光影藝術（投影畫）」切入，但具體的課程主題、學生活動、材料與作品成果都還不明確。
+                    </p>
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800">
+                        💡 <b>備課心法：</b>接受初始想法仍然模糊，先把現況「已知」與「待確認」說清楚即可開始。
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="fade-in-stagger delay-3 macaron-card p-5 border-l-4 border-sky-400">
+                        <div class="text-sky-700 font-bold text-sm mb-2"><i class="fa-solid fa-circle-check mr-2"></i>已知條件 (Known)</div>
+                        <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                            <li>對象：國中資優學生</li>
+                            <li>時間：暑期營隊課程</li>
+                            <li>切入點：光影藝術 / 投影畫（紙片、模型、光源角度）</li>
+                        </ul>
+                    </div>
+                    <div class="fade-in-stagger delay-4 macaron-card p-5 border-l-4 border-amber-400">
+                        <div class="text-amber-700 font-bold text-sm mb-2"><i class="fa-solid fa-circle-question mr-2"></i>待確認細節 (To-Be-Decided)</div>
+                        <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                            <li>SEL 主題連結點與引導問題</li>
+                            <li>確切耗材與投影平台製作方式</li>
+                            <li>學生預期產出的最終作品形態</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="請老師們在心裡或草稿紙上寫下：自己今天想備課的主題，哪些已知？哪些還不確定？"></div>
+        </section>
+
+        <!-- SLIDE 04: Project Folder -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 0｜準備" data-step-class="step-tag-s0">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Step 0. 開始前的準備</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">建立課程專案資料夾</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">建立後續產出、修改與版本管理的共同位置</p>
+            </div>
+            <div class="fade-in-stagger delay-3 macaron-card p-8 max-w-3xl mx-auto w-full border-emerald-100">
+                <div class="font-mono text-sm space-y-3">
+                    <div class="flex items-center gap-2 text-emerald-700 font-bold text-base border-b border-emerald-100 pb-3">
+                        <i class="fa-solid fa-folder-open text-xl text-emerald-500"></i>
+                        <span>📁 專案根目錄：SEL-光影奇航/</span>
+                    </div>
+                    <div class="pl-4 sm:pl-6 space-y-2.5 text-slate-700">
+                        <div class="flex items-center gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100"><i class="fa-solid fa-folder text-amber-500"></i> 1_課程規劃/ <span class="text-xs text-slate-400 ml-auto">存放藍圖、大綱與 Prompt</span></div>
+                        <div class="flex items-center gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100"><i class="fa-solid fa-folder text-amber-500"></i> 2_講義與學習單/ <span class="text-xs text-slate-400 ml-auto">存放 Word/Markdown 原稿</span></div>
+                        <div class="flex items-center gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100"><i class="fa-solid fa-folder text-amber-500"></i> 3_課堂簡報/ <span class="text-xs text-slate-400 ml-auto">存放 index.html 及簡報圖檔</span></div>
+                        <div class="flex items-center gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100"><i class="fa-solid fa-folder text-amber-500"></i> 4_參考資料/ <span class="text-xs text-slate-400 ml-auto">圖片、靈感與授權說明</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="良好檔案目錄結構是 AI 時代資料管理的關鍵，確保後續 AI 工具或 Agent 能夠準確讀取。"></div>
+        </section>
+
+        <!-- SLIDE 05: First Question -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 0｜準備" data-step-class="step-tag-s0">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Step 0. 開始前的準備</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">用第一個問題開始討論</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">初次對話不必先寫出完美提示語，從搜尋方向或概念釐清開始</p>
+            </div>
+            <div class="fade-in-stagger delay-3 prompt-box p-6 rounded-2xl max-w-4xl mx-auto relative border-purple-200">
+                <div class="flex items-center justify-between mb-3 border-b border-purple-100 pb-2">
+                    <span class="text-xs font-bold text-purple-700 flex items-center gap-2">
+                        <i class="fa-solid fa-terminal"></i> 隆老師的第一個問題 (Prompt)
+                    </span>
+                    <button onclick="copyText('p5-prompt')" class="text-xs text-purple-600 hover:text-purple-800"><i class="fa-regular fa-copy mr-1"></i>複製內容</button>
+                </div>
+                <p id="p5-prompt" class="text-slate-800 text-base leading-relaxed">
+                    「我想要設計一門課程，關於如何製作投影畫。學生用小紙片或模型插在平台上，透過特定角度的光照，產生出投影圖案。想要搜尋這些課程資料，要使用什麼關鍵字？並依據這個關鍵字幫我蒐集相關資料。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="不用害怕寫錯，先將自己的想法丟給 AI，請它幫忙發想關鍵字，降低開始對話的門檻。"></div>
+        </section>
+
+        <!-- SLIDE 06: Data Boundary & Privacy -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 0｜準備" data-step-class="step-tag-s0">
+            <div class="mb-6 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-500 block mb-1">Security & Policy</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">確認資料來源與使用範圍</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 border-l-4 border-rose-400">
+                    <div class="text-rose-600 font-bold text-sm mb-1"><i class="fa-solid fa-user-shield mr-2"></i>嚴禁上傳學生個資</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">不可輸入學生姓名、學號、成績、照片、性向及家長私人聯絡資訊。</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-l-4 border-amber-400">
+                    <div class="text-amber-600 font-bold text-sm mb-1"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>重要事實必須查證</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">AI 可能產生「幻覺」，教學相關數據、科學原理由教師親自覆核。</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-l-4 border-yellow-400">
+                    <div class="text-yellow-700 font-bold text-sm mb-1"><i class="fa-solid fa-tag mr-2"></i>資料不足標記「待確認」</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">明確告知 AI 資料不足處保留標籤，禁止自行無中生有補完。</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-5 border-l-4 border-sky-400">
+                    <div class="text-sky-600 font-bold text-sm mb-1"><i class="fa-solid fa-copyright mr-2"></i>保留原始來源與授權</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">使用外部教材或參考資料時，記下出處與 CC 授權規範。</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="在正式產出前建立查證、個資與授權界線，這也是教師數位素養的重要部分。"></div>
+        </section>
+
+        <!-- SLIDE 07: Step 1 - Three Ideas -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Step 1. 規劃課程</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">提出三個課程構想</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">情境：隆老師整理現有資料後，需要比較幾個可行的發想方向</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 border-purple-100">
+                    <div class="text-purple-700 font-bold text-sm mb-2">方案 A：情緒光影故事館</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">著重於透過影子造型表達喜怒哀樂的情緒轉換，作品以個人小型燈箱為主。</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-purple-100">
+                    <div class="text-purple-700 font-bold text-sm mb-2">方案 B：團體角度合作賽</div>
+                    <p class="text-slate-600 text-xs leading-relaxed">著重於團隊協商，多個物體在不同光源下交織出立體複合影子的挑戰。</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-2 border-purple-400 bg-purple-50/40">
+                    <div class="text-purple-800 font-bold text-sm mb-2"><i class="fa-solid fa-star text-amber-500 mr-1"></i>方案 C：SEL 光影奇航 (選定)</div>
+                    <p class="text-slate-700 text-xs leading-relaxed font-medium">結合個體觀察與團隊協作，探討距離與角度變幻，連結自我觀點與他人視角。</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="先請 AI 提供 3 個有顯著差異的構想，讓老師有比較與選擇的基底，避免一開始就拘泥於單一教案。"></div>
+        </section>
+
+        <!-- SLIDE 08: Three Ideas Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Step 1. 規劃課程</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">提出三個課程構想的提示語</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 prompt-box p-5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-2 text-purple-700 font-bold border-b border-purple-100 pb-1">
+                    <span><i class="fa-solid fa-terminal mr-2"></i>提示語範例</span>
+                    <button onclick="copyText('p8-prompt')" class="text-purple-600 hover:text-purple-800"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <p id="p8-prompt" class="text-slate-800">
+                    「我正在規劃一場國中資優學生的暑期 SEL 營隊。我想以光影藝術為主軸，也蒐集了一些投影畫與影子藝術的資料，但目前還沒有決定要搭配哪一個 SEL 主題、使用哪些道具，或讓學生完成什麼作品。<br><br>
+                    請根據我提供的資料，提出 3 個可行的初步課程構想。每個構想簡要說明可以連結的 SEL 主題、學生可能進行的活動，以及需要準備的材料，讓我比較後再決定方向。現在先不要寫完整教案。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="注意提示語中的控制命令：『現在先不要寫完整教案』，這能避免 AI 一下子輸出太長且不符合需要的細節。"></div>
+        </section>
+
+        <!-- SLIDE 09: Course Blueprint Prompt & Preview -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Step 1. 規劃課程</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">把選定構想整理成課程藍圖</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="fade-in-stagger delay-2 prompt-box p-4 rounded-xl text-xs leading-relaxed">
+                    <div class="text-purple-700 font-bold mb-2">Prompt 整理藍圖：</div>
+                    「我想採用第 3 個構想，並保留『情緒與觀點轉變』的部分。請根據前面的討論，把這個構想延伸成一頁式課程藍圖，包含：課程名稱、核心問題、學習目標、活動流程、學生任務、預計成果、所需材料、時間安排與注意事項。若有尚未決定或資料不足的地方，請標示出來，不要自行補完。」
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 rounded-xl border-purple-200 text-xs">
+                    <div class="text-purple-800 font-bold text-sm mb-2"><i class="fa-solid fa-file-contract mr-2 text-purple-500"></i>SEL 光影奇航 藍圖預覽</div>
+                    <ul class="space-y-2 text-slate-600">
+                        <li><b>核心問題：</b>當光源移動時，影子如何改變？這與看事情的視角有何關聯？</li>
+                        <li><b>學習目標：</b>理解光影幾何物理；練習從他人視角重構經驗。</li>
+                        <li><b>學生成果：</b>完成主題投影畫創作、影子紀錄表與反思簡報。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="展示從多個方案收斂到一份『一頁式課程藍圖』的過程，為下一步製作學生講義做好準備。"></div>
+        </section>
+
+        <!-- SLIDE 10: 5 Essential Elements for Course Planning Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Step 1. 規劃課程</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">課程規劃提示語的五大必要元素</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="fade-in-stagger delay-1 macaron-card p-4 border-t-4 border-purple-400 text-center">
+                    <div class="text-purple-600 text-xl font-black mb-1">1</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">課程對象</div>
+                    <p class="text-[11px] text-slate-500">年級、資優/普通班、先備知識</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-4 border-t-4 border-indigo-400 text-center">
+                    <div class="text-indigo-600 text-xl font-black mb-1">2</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">靈感與資料</div>
+                    <p class="text-[11px] text-slate-500">提供參考文本、主題或教學想法</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 border-t-4 border-sky-400 text-center">
+                    <div class="text-sky-600 text-xl font-black mb-1">3</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">時間資源限制</div>
+                    <p class="text-[11px] text-slate-500">節數、節長、場地與可用工具</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-4 border-t-4 border-emerald-400 text-center">
+                    <div class="text-emerald-600 text-xl font-black mb-1">4</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">期待 AI 任務</div>
+                    <p class="text-[11px] text-slate-500">發想、整理表格或規劃結構</p>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card p-4 border-t-4 border-amber-400 text-center">
+                    <div class="text-amber-600 text-xl font-black mb-1">5</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">當輪輸出限制</div>
+                    <p class="text-[11px] text-slate-500">先給大綱、限制字數、標示不確定</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="這 5 大元素是通用公式，不論用哪家 AI 模型都可以套用。"></div>
+        </section>
+
+        <!-- SLIDE 11: Practice Blueprint -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Hands-On Practice</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">現場實作：完成自己的課程藍圖</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-4xl mx-auto space-y-4 border-purple-100">
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center font-bold shrink-0">1</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-base">提出 3 個構想</h4>
+                        <p class="text-xs text-slate-600">請 AI 針對你的主題，提出 3 個具備不同切入點的教學構想。</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center font-bold shrink-0">2</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-base">挑選並微調</h4>
+                        <p class="text-xs text-slate-600">選定最適合你教學現場的方案，告訴 AI 需要保留或修改的段落。</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center font-bold shrink-0">3</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-base">生成一頁式課程藍圖</h4>
+                        <p class="text-xs text-slate-600">要求 AI 包含核心問題、目標、流程、學生任務、成果與注意事項。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="給予參與教師 10-15 分鐘現場實作，講師與助教巡視協助。"></div>
+        </section>
+
+        <!-- SLIDE 12: Blueprint Checklist -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-purple-600 block mb-1">Checklist</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">檢查課程藍圖</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-3xl mx-auto space-y-3 border-purple-100">
+                <label class="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                    <input type="checkbox" class="w-5 h-5 accent-purple-600 rounded">
+                    <span class="text-sm text-slate-700">核心問題能在活動與作品中獲得回應與討論。</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                    <input type="checkbox" class="w-5 h-5 accent-purple-600 rounded">
+                    <span class="text-sm text-slate-700">活動任務與預期的學習證據（作品/學習單）相互對應。</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                    <input type="checkbox" class="w-5 h-5 accent-purple-600 rounded">
+                    <span class="text-sm text-slate-700">時間、材料、安全限制符合學校現場條件。</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                    <input type="checkbox" class="w-5 h-5 accent-purple-600 rounded">
+                    <span class="text-sm text-slate-700">待確認事項沒有被 AI 擅自填補，仍清晰標記。</span>
+                </label>
+            </div>
+            <div class="speaker-note hidden" data-note="檢查表幫助教師進行自我檢視，確保藍圖具備課堂實行性。"></div>
+        </section>
+
+        <!-- SLIDE 13: Teacher Ownership -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6 text-center" data-step="Step 1｜課程藍圖" data-step-class="step-tag-s1">
+            <div class="fade-in-stagger delay-1 w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center text-3xl mx-auto mb-4 border border-amber-200 shadow-sm">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <h2 class="fade-in-stagger delay-2 text-3xl sm:text-4xl font-extrabold text-slate-800 mb-4">確認教學內容與課程安排</h2>
+            <p class="fade-in-stagger delay-3 text-slate-600 max-w-2xl mx-auto text-base leading-relaxed mb-6">
+                AI 可以快速搭建課程架構並提出創新建議，但<strong class="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">教學品質與課堂責任仍需由教師親自把關與最後決定</strong>。
+            </p>
+            <div class="fade-in-stagger delay-4 inline-flex items-center gap-4 px-6 py-3 bg-white rounded-full border border-amber-200 text-xs text-slate-600 shadow-sm">
+                <span>✓ 正確性審查</span>
+                <span>✓ 順序與難度調整</span>
+                <span>✓ 現場學生需求適應</span>
+            </div>
+            <div class="speaker-note hidden" data-note="再次強調教師的角色是專業把關者，AI 是強大的助手而非決定者。"></div>
+        </section>
+
+        <!-- SLIDE 14: Step 2 - Documents Planning -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Step 2. 製作講義與學習單</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">規劃學生要使用的文件</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">區分「講義」與「學習單」兩種不同用途的文件</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="fade-in-stagger delay-2 macaron-card p-6 border-t-4 border-sky-400">
+                    <div class="flex items-center gap-2 text-sky-700 font-bold text-lg mb-3">
+                        <i class="fa-solid fa-book"></i> 學生講義 (Handout)
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li><b>目的：</b>整理活動所需的知識、原理、步驟與安全提醒。</li>
+                        <li><b>內容：</b>光影形成條件、幾何距離變化、材料清單、安全規範。</li>
+                        <li><b>特色：</b>文字清晰、閱讀流暢，方便學生隨時查閱。</li>
+                    </ul>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-6 border-t-4 border-rose-400">
+                    <div class="flex items-center gap-2 text-rose-700 font-bold text-lg mb-3">
+                        <i class="fa-solid fa-pen-field"></i> 活動學習單 (Worksheet)
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li><b>目的：</b>留下觀察紀錄、推理預測、選擇理由與情緒反思。</li>
+                        <li><b>內容：</b>第一次觀察紀錄、角度變因預測、小隊互評與 SEL 反思。</li>
+                        <li><b>特色：</b>留有充裕填寫空間、欄位明確，作為學習證據。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="講義負責輸入資訊，學習單負責輸出學習歷程與證據。"></div>
+        </section>
+
+        <!-- SLIDE 15: Handout Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Step 2. 製作講義與學習單</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">製作講義與工作頁的提示語</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 prompt-box p-5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto border-rose-200">
+                <div class="flex items-center justify-between mb-2 text-rose-700 font-bold border-b border-rose-100 pb-1">
+                    <span><i class="fa-solid fa-terminal mr-2"></i>提示語範例</span>
+                    <button onclick="copyText('p15-prompt')" class="text-rose-600 hover:text-rose-800"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <p id="p15-prompt" class="text-slate-800">
+                    「依照這份『光影奇航』課程藍圖，先規劃學生講義與一張活動工作頁。<br><br>
+                    講義要讓國中學生理解影子形成的條件、距離與角度造成的變化、作品任務、安全提醒及分享方式；工作頁要讓學生留下第一次觀察、變因預測、實測差異、作品選擇理由，以及把光影變化連回情緒觀點的反思。<br><br>
+                    請先列出兩份文件的架構、各段目的與對應的學習證據，現在不要直接寫全文。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="先請 AI 規劃『兩份文件的架構與目的』，確保兩者分工明確，再逐步生成內容。"></div>
+        </section>
+
+        <!-- SLIDE 16: Handout Prompt Elements -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Step 2. 製作講義與學習單</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">講義提示語的五大必要元素</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="fade-in-stagger delay-1 macaron-card p-4 border-t-4 border-rose-400 text-center">
+                    <div class="text-rose-600 text-xl font-black mb-1">1</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">使用對象</div>
+                    <p class="text-[11px] text-slate-500">閱讀理解能力、用語習慣</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-4 border-t-4 border-purple-400 text-center">
+                    <div class="text-purple-600 text-xl font-black mb-1">2</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">文件用途</div>
+                    <p class="text-[11px] text-slate-500">閱讀預習、步驟對照或操作記錄</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 border-t-4 border-indigo-400 text-center">
+                    <div class="text-indigo-600 text-xl font-black mb-1">3</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">依據藍圖</div>
+                    <p class="text-[11px] text-slate-500">指定前述確認的課程架構</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-4 border-t-4 border-sky-400 text-center">
+                    <div class="text-sky-600 text-xl font-black mb-1">4</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">理解內容</div>
+                    <p class="text-[11px] text-slate-500">關鍵觀念、操作步驟與警示</p>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card p-4 border-t-4 border-emerald-400 text-center">
+                    <div class="text-emerald-600 text-xl font-black mb-1">5</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">學習證據</div>
+                    <p class="text-[11px] text-slate-500">對應填寫欄位與心得引導</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="講義提示語重點在於『學生看得懂』與『學習證據產出』。"></div>
+        </section>
+
+        <!-- SLIDE 17: Table of Contents & Sample Page -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Step 2. 製作講義與學習單</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">完成講義目錄與一頁樣張</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">先確定整體架構目錄，再精修單頁樣張</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-sky-200">
+                    <div class="text-sky-700 font-bold text-sm mb-3"><i class="fa-solid fa-list-ol mr-2"></i>1. 講義目錄規劃</div>
+                    <ol class="text-xs text-slate-600 space-y-2 list-decimal list-inside">
+                        <li>第一章：光影魔術開場 — 影子是怎麼變出來的？</li>
+                        <li>第二章：幾何大挑戰 — 距離與光源角度的祕密</li>
+                        <li>第三章：光影奇航任務 — 團隊投影畫創作</li>
+                        <li>第四章：觀點轉易 — 從影子看見不同的世界</li>
+                    </ol>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-l-4 border-rose-400">
+                    <div class="text-rose-700 font-bold text-sm mb-3"><i class="fa-solid fa-file-lines mr-2"></i>2. 單頁樣張精修</div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        選定「第二章：幾何大挑戰」撰寫完整內文，包含小實驗圖示、提示方塊與「動腦想一想」互動問題，確定排版與語氣符合學生需求後，再繼續生成其他章節。
+                    </p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="採用『先目錄、再樣張』的策略，可以大幅減少一口氣產生整份講義時內容偏離預期的機會。"></div>
+        </section>
+
+        <!-- SLIDE 18: Worksheet Timeline -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Step 2. 製作講義與學習單</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">完成一張學習單（時間線設計）</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 border-t-4 border-sky-400">
+                    <div class="text-sky-700 font-bold text-sm mb-2"><i class="fa-solid fa-play mr-2"></i>活動前：觀察與猜測</div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-3">紀錄第一次看到的影子樣貌，並預測當光源拉近 10cm 時，影子變大還是變小？</p>
+                    <span class="text-[10px] bg-sky-50 px-2 py-1 rounded text-sky-800 border border-sky-200">證據：預測圖表與勾選</span>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-t-4 border-purple-400">
+                    <div class="text-purple-700 font-bold text-sm mb-2"><i class="fa-solid fa-vial mr-2"></i>操作中：實測與對比</div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-3">填寫實驗數據，比對實測結果與原先猜測的差異，記錄特殊發現。</p>
+                    <span class="text-[10px] bg-purple-50 px-2 py-1 rounded text-purple-800 border border-purple-200">證據：實測數據表格</span>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-t-4 border-rose-400">
+                    <div class="text-rose-700 font-bold text-sm mb-2"><i class="fa-solid fa-heart mr-2"></i>操作後：SEL 反思</div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-3">連結光影角度與人際視角：「當影子扭曲時，更換光源位置就能改變；當想法僵化時，我可以如何切換視角？」</p>
+                    <span class="text-[10px] bg-rose-50 px-2 py-1 rounded text-rose-800 border border-rose-200">證據：文字短句與觀點圖</span>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="學習單時間線：前、中、後三階段，完整捕捉學習證據與情緒連結。"></div>
+        </section>
+
+        <!-- SLIDE 19: Handout Quality Checklist -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 2｜講義學習單" data-step-class="step-tag-s2">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-rose-600 block mb-1">Checklist</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">檢查內容與檔案</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="fade-in-stagger delay-2 macaron-card p-5 space-y-3 border-rose-100">
+                    <div class="text-rose-700 font-bold text-sm mb-2">品質檢查點</div>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 內容正確且名詞前後一致</label>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 安全提醒出現在動手操作之前</label>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 學習單留有適當填寫與繪圖空間</label>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 space-y-3 border-rose-100">
+                    <div class="text-rose-700 font-bold text-sm mb-2">檔案整理規範</div>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 講義與學習單分開獨立存檔</label>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 檔名加上日期版號 (如: Handout_v2.docx)</label>
+                    <label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" class="accent-rose-500"> 後續簡報製作以這兩份文件為準</label>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="確認講義與學習單高品質完成，作為下一步生成 HTML 簡報的精確文字來源。"></div>
+        </section>
+
+        <!-- SLIDE 20: Step 3 - Text to Slide -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">把講義內容轉成課堂簡報</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">簡報需要配合課堂節奏，每頁聚焦一個主要訊息</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-slate-200">
+                    <div class="text-slate-500 text-xs font-bold mb-2">原講義內文 (長段落)</div>
+                    <p class="text-xs text-slate-500 leading-relaxed italic">
+                        「當我們把光源靠近物體時，物體擋住光線的夾角變大，因此在牆面上產生的陰影面積會隨之擴大；反之拉遠時陰影會縮小...」
+                    </p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-l-4 border-sky-400">
+                    <div class="text-sky-700 text-xs font-bold mb-2">轉化為簡報頁面 (視覺焦點)</div>
+                    <div class="text-lg font-bold text-slate-800 mb-2">光源距離與影子大小</div>
+                    <div class="flex gap-4 text-xs">
+                        <div class="bg-sky-50 border border-sky-200 p-2 rounded text-sky-800">光源越近 ➔ 影子越大</div>
+                        <div class="bg-slate-100 p-2 rounded text-slate-700">光源越遠 ➔ 影子越小</div>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="講義適合完整閱讀，簡報適合現場投影。轉換時要簡化字數、突出重點。"></div>
+        </section>
+
+        <!-- SLIDE 21: PPTX vs HTML Slide Comparison -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Format Selection</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">為什麼選擇 HTML 簡報？</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="fade-in-stagger delay-2 macaron-card p-6 border-slate-200">
+                    <div class="text-slate-600 font-bold text-lg mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-file-powerpoint text-orange-500"></i> 傳統 PPTX 簡報
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2.5">
+                        <li>• 適合熟悉的簡報軟體拖曳編輯與離線播放</li>
+                        <li>• 版面可能因不同電腦字型缺漏而錯位</li>
+                        <li>• 難以直接嵌入複雜的互動元件與即時模擬程式</li>
+                        <li>• 分享需要傳送較大檔案或另存 PDF</li>
+                    </ul>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-6 border-2 border-sky-400 relative">
+                    <div class="absolute top-3 right-3 bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">本課程選用</div>
+                    <div class="text-sky-700 font-bold text-lg mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-code text-sky-500"></i> AI 原生 HTML 簡報
+                    </div>
+                    <ul class="text-xs text-slate-700 space-y-2.5">
+                        <li>• 適合用 AI 直接完整產出，免手動一張張拉排版</li>
+                        <li>• 跨裝置（手機、平板、電腦）響應式完美呈現</li>
+                        <li>• 可直接無縫嵌入動態互動頁面（如光學模擬器）</li>
+                        <li>• 部署為網址後，學生點擊連結即可線上複習</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="點出 HTML 簡報在 AI 時代的強大優勢：易生成、可互動、好分享。"></div>
+        </section>
+
+        <!-- SLIDE 22: Slide Map Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">規劃投影片地圖的提示語</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 prompt-box p-5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto border-sky-200">
+                <div class="flex items-center justify-between mb-2 text-sky-700 font-bold border-b border-sky-100 pb-1">
+                    <span><i class="fa-solid fa-terminal mr-2"></i>提示語範例</span>
+                    <button onclick="copyText('p22-prompt')" class="text-sky-600 hover:text-sky-800"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <p id="p22-prompt" class="text-slate-800">
+                    「我要依照已確認的『光影奇航』講義製作課堂用 HTML 簡報。請先規劃投影片地圖，不要寫程式。<br><br>
+                    內容需要依序帶學生看見作品、提出驅動問題、理解距離/角度/旋轉造成的影子變化、接收設計任務與安全提醒，最後回到學習單的反思。<br><br>
+                    請依教學需要決定頁數；每頁只處理一個主要訊息，並列出該頁目的、畫面文字、教師或學生動作，以及需要的視覺素材。不要新增講義以外的事實。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="先請 AI 輸出『投影片地圖』清單，確定頁數與教學順序，再撰寫 HTML。"></div>
+        </section>
+
+        <!-- SLIDE 23: Slide Prompt 5 Elements -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">簡報提示語的五大必要元素</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="fade-in-stagger delay-1 macaron-card p-4 border-t-4 border-sky-400 text-center">
+                    <div class="text-sky-600 text-xl font-black mb-1">1</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">內容依據</div>
+                    <p class="text-[11px] text-slate-500">鎖定講義與學習單內容</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-4 border-t-4 border-teal-400 text-center">
+                    <div class="text-teal-600 text-xl font-black mb-1">2</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">使用情境</div>
+                    <p class="text-[11px] text-slate-500">課堂大螢幕投影/學生自學</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 border-t-4 border-indigo-400 text-center">
+                    <div class="text-indigo-600 text-xl font-black mb-1">3</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">教學順序</div>
+                    <p class="text-[11px] text-slate-500">引起動機➔說明➔任務➔反思</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-4 border-t-4 border-purple-400 text-center">
+                    <div class="text-purple-600 text-xl font-black mb-1">4</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">單頁主訊息</div>
+                    <p class="text-[11px] text-slate-500">每頁限制單一焦點不擁擠</p>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card p-4 border-t-4 border-rose-400 text-center">
+                    <div class="text-rose-600 text-xl font-black mb-1">5</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">課堂動作</div>
+                    <p class="text-[11px] text-slate-500">標註師生當頁進行的對話任務</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="確保提示語提供足夠的課堂脈絡，避免 AI 產生無效圖文。"></div>
+        </section>
+
+        <!-- SLIDE 24: Modify Slide Map -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">修改自己的投影片地圖</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">在寫程式前完成簡報架構調整</p>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-3xl mx-auto space-y-4 border-sky-100">
+                <div class="flex items-center gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs">
+                    <span class="text-rose-700 font-bold">刪除 / 合併：</span>
+                    <span class="text-slate-700">「第 4 頁與第 5 頁都在講距離，請合併為一頁。」</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
+                    <span class="text-emerald-700 font-bold">拆分頁面：</span>
+                    <span class="text-slate-700">「第 8 頁材料與安全提醒內容過多，請拆成兩頁。」</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs">
+                    <span class="text-sky-700 font-bold">調整順序：</span>
+                    <span class="text-slate-700">「把『學習單反思說明』移動到『成果展示』之後。」</span>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="地圖調整完畢後，再請 AI 一口氣生成完整 HTML 程式碼，最不會浪費時間。"></div>
+        </section>
+
+        <!-- SLIDE 25: Generate HTML Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">生成 HTML 簡報的提示語</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 prompt-box p-5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto border-sky-200">
+                <div class="flex items-center justify-between mb-2 text-sky-700 font-bold border-b border-sky-100 pb-1">
+                    <span><i class="fa-solid fa-terminal mr-2"></i>提示語範例</span>
+                    <button onclick="copyText('p25-prompt')" class="text-sky-600 hover:text-sky-800"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <p id="p25-prompt" class="text-slate-800">
+                    「請依照剛才確認的投影片規劃，製作一份可以在瀏覽器開啟的 HTML 簡報。<br><br>
+                    使用繁體中文，整體風格簡潔、適合教室投影；每頁聚焦一個重點，內容較多時使用 grid 排版，不要全部擠成長段文字。需要講解順序的內容請依序出現。<br><br>
+                    加入上一頁、下一頁、頁碼與鍵盤方向鍵操作，並讓手機畫面也能正常閱讀。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="提示語中包含了響應式（手機閱讀）、鍵盤導航控制等關鍵技術需求。"></div>
+        </section>
+
+        <!-- SLIDE 26: Test & Fix HTML -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">開啟簡報並修正問題</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">將程式存為 index.html，開啟瀏覽器進行第一輪測試</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 border-amber-200">
+                    <div class="text-amber-700 font-bold text-sm mb-2"><i class="fa-solid fa-bug mr-2"></i>問題 1：字體太小</div>
+                    <p class="text-xs text-slate-600">「第 5 頁投影後後排學生看不清，請把標題調大至 38px 以上，內文 22px。」</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-rose-200">
+                    <div class="text-rose-700 font-bold text-sm mb-2"><i class="fa-solid fa-arrows-left-right mr-2"></i>問題 2：按鈕沒反應</div>
+                    <p class="text-xs text-slate-600">「鍵盤左右方向鍵切換失效，請檢查 keydown 事件監聽程式碼。」</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-sky-200">
+                    <div class="text-sky-700 font-bold text-sm mb-2"><i class="fa-solid fa-mobile-screen mr-2"></i>問題 3：手機版溢出</div>
+                    <p class="text-xs text-slate-600">「在手機寬度下表格會超出螢幕，請加上 overflow-x-auto。」</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="向 AI 提出修復請求時，精確指出『頁次』、『問題現象』與『期待結果』。"></div>
+        </section>
+
+        <!-- SLIDE 27: Slide File Structure -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 3｜HTML簡報" data-step-class="step-tag-s3">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">Step 3. 製作 HTML 簡報</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">整理簡報檔案</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-8 max-w-2xl mx-auto border-sky-100">
+                <div class="font-mono text-xs space-y-3">
+                    <div class="text-sky-700 font-bold text-sm border-b border-sky-100 pb-2">📂 3_課堂簡報/</div>
+                    <div class="pl-4 space-y-2 text-slate-700">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-file-code text-orange-500"></i> index.html <span class="text-slate-400">(主要簡報檔，確認副檔名非 .txt)</span></div>
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-folder text-amber-500"></i> assets/ <span class="text-slate-400">(存放簡報中引用的圖片與影片)</span></div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                    <p>✓ 圖片路徑統一使用相對路徑 (如 <code>./assets/photo.jpg</code>)</p>
+                    <p>✓ 檔名使用英文小寫與連字號，避免大小寫不符問題</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="良好的相對路徑習慣是後續部署到 Netlify 成功運行的關鍵。"></div>
+        </section>
+
+        <!-- SLIDE 28: Step 4 - Why Interactive -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜加入互動" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Step 4. 加入互動並上線</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">加入一個互動頁面</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">情境：靜態圖片難以解釋動態變化，需要讓學生動手操作</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-slate-200 opacity-80">
+                    <div class="text-slate-500 font-bold text-xs mb-2">靜態圖片呈現 (效果有限)</div>
+                    <div class="h-32 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 text-xs border border-slate-200">
+                        [ 靜態光源與影子示意圖 ]
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">學生只能被動看圖，難以理解光源角度連續改變時影子的漸變。</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-2 border-orange-400 bg-amber-50/20">
+                    <div class="text-orange-700 font-bold text-xs mb-2"><i class="fa-solid fa-gamepad mr-2"></i>可操作互動元件 (動手實驗)</div>
+                    <div class="h-32 bg-white rounded-xl border border-orange-200 flex flex-col items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-sliders text-orange-500 text-2xl animate-pulse"></i>
+                        <span class="text-xs text-slate-800 font-bold">即時光學影子模擬控制面板</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mt-2">拖動光源、調整物體角度，影子同步即時變形！</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="互動頁面能大幅提升課堂參與度與學生自學效果。"></div>
+        </section>
+
+        <!-- SLIDE 29: Interactive Page Prompt -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜加入互動" data-step-class="step-tag-s4">
+            <div class="mb-4">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Step 4. 加入互動並上線</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">加入互動頁面的提示語</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 prompt-box p-5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto border-orange-200">
+                <div class="flex items-center justify-between mb-2 text-orange-700 font-bold border-b border-orange-100 pb-1">
+                    <span><i class="fa-solid fa-terminal mr-2"></i>提示語範例</span>
+                    <button onclick="copyText('p29-prompt')" class="text-orange-600 hover:text-orange-800"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <p id="p29-prompt" class="text-slate-800">
+                    「請在『光影奇航』簡報中插入一個互動頁面，主題是呈現物體位置與角度的變化如何影響影子。<br><br>
+                    頁面中要看得到光源、物體、投影面與影子；可以拖動光源和物體，也能用滑桿調整物體角度，影子要立即跟著改變。<br><br>
+                    請加入重設按鈕與清楚標示，並讓滑鼠、觸控和鍵盤都能操作。先說明你準備如何安排這個互動頁面，等我確認後再修改簡報。」
+                </p>
+            </div>
+            <div class="speaker-note hidden" data-note="指示 AI 包含：光源、物體、投影面、影子四元素，並支援滑鼠與觸控操作。"></div>
+        </section>
+
+        <!-- SLIDE 30: Interactive Prompt 5 Elements -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜加入互動" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Step 4. 加入互動並上線</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">互動提示語的五大必要元素</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="fade-in-stagger delay-1 macaron-card p-4 border-t-4 border-orange-400 text-center">
+                    <div class="text-orange-600 text-xl font-black mb-1">1</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">互動位置</div>
+                    <p class="text-[11px] text-slate-500">放在簡報哪一頁或主題</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-4 border-t-4 border-amber-400 text-center">
+                    <div class="text-amber-600 text-xl font-black mb-1">2</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">畫面元素</div>
+                    <p class="text-[11px] text-slate-500">光源、物體、影子、控制面板</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 border-t-4 border-yellow-400 text-center">
+                    <div class="text-yellow-600 text-xl font-black mb-1">3</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">使用者操作</div>
+                    <p class="text-[11px] text-slate-500">拖拽、滑動拉桿、按鈕點擊</p>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-4 border-t-4 border-emerald-400 text-center">
+                    <div class="text-emerald-600 text-xl font-black mb-1">4</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">即時回饋</div>
+                    <p class="text-[11px] text-slate-500">影子長度與形狀隨即時改變</p>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card p-4 border-t-4 border-sky-400 text-center">
+                    <div class="text-sky-600 text-xl font-black mb-1">5</div>
+                    <div class="text-sm font-bold text-slate-800 mb-1">重設與觸控</div>
+                    <p class="text-[11px] text-slate-500">提供一鍵重設與手機觸控支援</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="互動頁面的 5 要素可確保 AI 寫出的 JavaScript 控制邏輯符合預期。"></div>
+        </section>
+
+        <!-- SLIDE 31: LIVE INTERACTIVE OPTICS SIMULATOR -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-4 sm:p-6" data-step="Step 4｜加入互動" data-step-class="step-tag-s4">
+            <div class="mb-3 flex items-center justify-between">
+                <div>
+                    <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block">Interactive Demo</span>
+                    <h2 class="fade-in-stagger delay-1 text-2xl font-extrabold text-slate-800">實體互動展示：光影物理即時模擬器</h2>
+                </div>
+                <button onclick="resetOpticsSim()" class="fade-in-stagger delay-2 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-xs rounded-xl border border-amber-200 text-amber-900 font-medium shadow-sm">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>重設畫面
+                </button>
+            </div>
+
+            <div class="fade-in-stagger delay-2 macaron-card p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border-orange-200">
+                <!-- Controls -->
+                <div class="space-y-4 bg-amber-50/50 p-4 rounded-xl border border-amber-100 text-xs">
+                    <div>
+                        <label class="font-bold text-orange-700 block mb-1">💡 光源距離: <span id="val-light-dist">150</span>px</label>
+                        <input type="range" id="sim-light-dist" min="50" max="300" value="150" class="w-full accent-orange-500" oninput="updateOpticsSim()">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sky-700 block mb-1">📐 物體傾角: <span id="val-obj-angle">45</span>°</label>
+                        <input type="range" id="sim-obj-angle" min="0" max="90" value="45" class="w-full accent-sky-500" oninput="updateOpticsSim()">
+                    </div>
+                    <div>
+                        <label class="font-bold text-purple-700 block mb-1">📏 物體高度: <span id="val-obj-height">80</span>px</label>
+                        <input type="range" id="sim-obj-height" min="40" max="140" value="80" class="w-full accent-purple-500" oninput="updateOpticsSim()">
+                    </div>
+                    <div class="p-2.5 bg-white rounded-lg text-[11px] text-slate-600 leading-relaxed border border-amber-200/80 shadow-sm">
+                        📌 <b>實例觀察：</b>當光源越接近物體，牆面投影陰影越大；傾斜角度改變時，影子幾何輪廓隨之延伸變形。
+                    </div>
+                </div>
+
+                <!-- Canvas Visualizer Area -->
+                <div class="md:col-span-2 bg-slate-50 rounded-xl relative overflow-hidden flex items-center justify-center border border-slate-200 h-64 sm:h-72 shadow-inner">
+                    <canvas id="opticsCanvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="請講師在此頁親自拖動拉桿，向現場教師展示 HTML 簡報直接內建互動模擬器的驚人效果！"></div>
+        </section>
+
+        <!-- SLIDE 32: Deployment Step 1 - Pre-check -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Deployment Step 1</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">部署 Step 1：部署前檢查網站資料夾</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-3xl mx-auto space-y-4 border-orange-100">
+                <div class="flex items-center gap-3 p-3.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">最上層必須包含 index.html</div>
+                        <div class="text-xs text-slate-600">Netlify 預設以 index.html 作為網站首頁進入點。</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">測試相對路徑圖檔</div>
+                        <div class="text-xs text-slate-600">在本機以瀏覽器開啟 index.html，確認圖片皆可正常顯示無破圖。</div>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="部署前的檢查可大幅降低上線後找不到頁面或破圖的機會。"></div>
+        </section>
+
+        <!-- SLIDE 33: Deployment Step 2 - Open Netlify Drop -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-6 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Deployment Step 2</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">部署 Step 2：開啟 Netlify Drop 頁面</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-8 max-w-3xl mx-auto text-center space-y-4 border-sky-100">
+                <div class="text-sky-500 text-5xl mb-2"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <h3 class="text-xl font-bold text-slate-800">瀏覽至 app.netlify.com/drop</h3>
+                <p class="text-xs text-slate-600 max-w-lg mx-auto">
+                    Netlify Drop 提供免安裝、免註冊即可快速測試網頁部署的免費託管服務。
+                </p>
+                <div class="p-3 bg-sky-50 inline-block rounded-xl border border-sky-200 text-xs text-sky-800 font-mono font-semibold">
+                    https://app.netlify.com/drop
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="向老師們介紹 Netlify Drop，是最簡單快速將教材部署為線上網址的工具。"></div>
+        </section>
+
+        <!-- SLIDE 34: Deployment Step 3 - INTERACTIVE NETLIFY DROP SIMULATOR -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-4 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Deployment Step 3 (Interactive Practice)</span>
+                <h2 class="fade-in-stagger delay-1 text-2xl sm:text-3xl font-extrabold text-slate-800">部署 Step 3：把完整網站資料夾拖進上傳區</h2>
+            </div>
+
+            <!-- Netlify Upload Simulator -->
+            <div id="netlify-dropzone" onclick="simulateNetlifyUpload()" class="fade-in-stagger delay-2 macaron-card p-8 rounded-3xl border-2 border-dashed border-sky-300 hover:border-sky-500 transition cursor-pointer max-w-2xl mx-auto text-center relative overflow-hidden group">
+                <div id="dropzone-idle" class="space-y-3">
+                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center text-3xl mx-auto group-hover:scale-110 transition shadow-sm">
+                        <i class="fa-solid fa-folder-arrow-up"></i>
+                    </div>
+                    <div class="text-lg font-bold text-slate-800">拖曳「3_課堂簡報」資料夾至此處</div>
+                    <div class="text-xs text-slate-500">或點擊此區域模擬拖曳上傳</div>
+                    <span class="inline-block px-3 py-1 bg-sky-50 text-sky-700 border border-sky-200 text-[11px] rounded-full font-mono font-semibold">Drag & Drop Folder</span>
+                </div>
+
+                <div id="dropzone-uploading" class="hidden space-y-3">
+                    <div class="text-orange-600 text-xl font-bold animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在打包上傳並建置靜態網站...</div>
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden max-w-md mx-auto border border-slate-200">
+                        <div id="upload-progress-bar" class="bg-gradient-to-r from-orange-400 to-sky-400 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div id="dropzone-success" class="hidden space-y-3">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto border border-emerald-200">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="text-lg font-bold text-emerald-700">部署成功！網址已順利生成</div>
+                    <div class="p-2.5 bg-emerald-50 rounded-xl text-xs font-mono text-emerald-800 border border-emerald-200 break-all max-w-md mx-auto" id="simulated-url">
+                        https://sel-light-art-2026.netlify.app
+                    </div>
+                    <button onclick="resetNetlifySim(event)" class="text-xs text-slate-500 underline hover:text-slate-800">重新測試上傳</button>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="點擊上方拖曳框，即可模擬真實 Netlify 上傳與生成網址的互動體驗。"></div>
+        </section>
+
+        <!-- SLIDE 35: Deployment Step 4 - Demonstration -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Deployment Step 4</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">部署 Step 4：跟著示範完成上傳</h2>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-3xl mx-auto border-orange-100">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0 border border-orange-200"><i class="fa-solid fa-video"></i></div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">現場實作步驟演練</h3>
+                        <p class="text-xs text-slate-600">請大家開啟檔案總管，將剛剛產出的專案資料夾整包拉入 Netlify Drop。</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-amber-50/70 rounded-xl text-xs text-slate-600 space-y-2 border border-amber-200/80">
+                    <p>💡 <b>提示：</b>上傳完成後，系統會自動生成隨機域名（例如：<code>creative-sunshine-12345.netlify.app</code>）。</p>
+                    <p>💡 <b>進階：</b>可在 Netlify 後台 Site settings 更改為更具辨識度的個性化網址名稱。</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="引導學員實際操作一次 Netlify Drop，確保每位老師都能帶走屬於自己的線上網址。"></div>
+        </section>
+
+        <!-- SLIDE 36: Deployment Step 5 - Three Tests -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Deployment Step 5</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">部署 Step 5：打開公開網址並完成三次測試</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 border-t-4 border-sky-400 text-center">
+                    <div class="text-sky-500 text-3xl mb-2"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                    <div class="font-bold text-slate-800 text-sm mb-1">測試 1：新分頁開啟</div>
+                    <p class="text-xs text-slate-500">複製生成網址於瀏覽器新頁籤開啟，確認首頁與樣式正常。</p>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 border-t-4 border-indigo-400 text-center">
+                    <div class="text-indigo-500 text-3xl mb-2"><i class="fa-solid fa-user-secret"></i></div>
+                    <div class="font-bold text-slate-800 text-sm mb-1">測試 2：無痕視窗開啟</div>
+                    <p class="text-xs text-slate-500">排除瀏覽器快取干擾，模擬一般外部訪客開啟連結的畫面。</p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-t-4 border-purple-400 text-center">
+                    <div class="text-purple-500 text-3xl mb-2"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                    <div class="font-bold text-slate-800 text-sm mb-1">測試 3：手機掃碼開啟</div>
+                    <p class="text-xs text-slate-500">用智慧型手機開啟網址，確認手勢滑動與響應式排版順暢。</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="完成這三項測試後，即可安心將網址分享給學生或分享於學校網站。"></div>
+        </section>
+
+        <!-- SLIDE 37: Update Site & Privacy -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="Step 4｜上線部署" data-step-class="step-tag-s4">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Maintenance & Security</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">更新網站並檢查公開內容</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="fade-in-stagger delay-2 macaron-card p-5 space-y-3 border-orange-100">
+                    <div class="text-orange-700 font-bold text-sm border-b border-orange-100 pb-2"><i class="fa-solid fa-arrows-rotate mr-2"></i>如何更新內容？</div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        當本機的 <code>index.html</code> 或圖片有所修改時，只需再次登入 Netlify 或拖曳<b>完整資料夾</b>重新覆蓋上傳，網址將維持不變並立即更新為最新版本。
+                    </p>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 border-l-4 border-rose-400 space-y-3">
+                    <div class="text-rose-700 font-bold text-sm border-b border-rose-100 pb-2"><i class="fa-solid fa-shield-halved mr-2"></i>公開安全最終 Check</div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        公開前最後確認：無學生真實姓名、無未取得版權圖像、無個人私人電話帳號，確保教材安全公開無虞。
+                    </p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="提醒老師更新方法，並嚴格把關公開網址的資訊安全。"></div>
+        </section>
+
+        <!-- SLIDE 38: Agent Maintenance -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="延伸收束" data-step-class="step-tag-ext">
+            <div class="mb-6">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1">Future Workflow</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">使用 Agent 持續維護教材</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">Agent 可以接管整個本機教材資料夾，達成跨檔案同步修訂</p>
+            </div>
+            <div class="fade-in-stagger delay-2 macaron-card p-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 text-xs border-amber-100">
+                <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                    <div class="text-purple-700 font-bold text-sm mb-2"><i class="fa-solid fa-folder-tree mr-2"></i>全資料夾感知</div>
+                    <p class="text-slate-600 leading-relaxed">Agent 同時讀取藍圖、講義、學習單與 HTML 簡報，理解彼此關聯。</p>
+                </div>
+                <div class="bg-rose-50/50 p-4 rounded-xl border border-rose-100">
+                    <div class="text-rose-700 font-bold text-sm mb-2"><i class="fa-solid fa-arrows-split-up-and-left mr-2"></i>跨檔案同步修訂</div>
+                    <p class="text-slate-600 leading-relaxed">當修改講義中的專有名詞時，Agent 能一鍵同步更新學習單與簡報內文。</p>
+                </div>
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                    <div class="text-emerald-700 font-bold text-sm mb-2"><i class="fa-solid fa-code-commit mr-2"></i>版本自動保留</div>
+                    <p class="text-slate-600 leading-relaxed">每次大幅修正皆紀錄變更摘要，方便隨時追溯與回滾至歷史版本。</p>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="展示未來人機協作趨勢：教師擔任創意與判斷核心，Agent 負責多檔案維護與結構檢查。"></div>
+        </section>
+
+        <!-- SLIDE 39: Final Deliverables Checklist -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="延伸收束" data-step-class="step-tag-ext">
+            <div class="mb-6 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Final Checklist</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl font-extrabold text-slate-800">檢查今天完成的成果</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                <div class="fade-in-stagger delay-1 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">1. 課程藍圖</div>
+                    <div class="text-[11px] text-slate-500 mt-1">完整教學架構已定位</div>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">2. 學生講義</div>
+                    <div class="text-[11px] text-slate-500 mt-1">章節原理與說明俱全</div>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">3. 活動學習單</div>
+                    <div class="text-[11px] text-slate-500 mt-1">包含學習證據與 SEL</div>
+                </div>
+                <div class="fade-in-stagger delay-4 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">4. HTML 簡報</div>
+                    <div class="text-[11px] text-slate-500 mt-1">支援鍵盤與手機開啟</div>
+                </div>
+                <div class="fade-in-stagger delay-5 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">5. 互動模擬頁</div>
+                    <div class="text-[11px] text-slate-500 mt-1">可動態操作光學變化</div>
+                </div>
+                <div class="fade-in-stagger delay-6 macaron-card p-4 border-emerald-200 text-center">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
+                    <div class="font-bold text-slate-800 text-sm">6. 分享網址與原稿</div>
+                    <div class="text-[11px] text-slate-500 mt-1">已部署 Netlify 與本機檔</div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="恭喜各位老師！今天大家順利完成整套 AI 備課到互動教材上線流程！"></div>
+        </section>
+
+        <!-- SLIDE 40: Next Date & Next Steps -->
+        <section class="slide w-full max-w-6xl h-full flex-col justify-center p-6" data-step="延伸收束" data-step-class="step-tag-ext">
+            <div class="mb-6 text-center">
+                <span class="fade-in-stagger delay-1 text-xs font-bold uppercase tracking-wider text-orange-600 block mb-1">Action Plan</span>
+                <h2 class="fade-in-stagger delay-1 text-3xl sm:text-4xl font-extrabold text-slate-800">記錄下一次使用日期</h2>
+                <p class="fade-in-stagger delay-2 text-slate-500 text-sm mt-1">將今日研習產出，無縫連結至下一次真實教學工作</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="fade-in-stagger delay-1 macaron-card p-5 text-left border-amber-200">
+                    <div class="text-orange-700 font-bold text-sm mb-2"><i class="fa-solid fa-flag-checkered mr-2"></i>我今天完成了：</div>
+                    <textarea class="w-full h-24 bg-amber-50/40 text-slate-800 text-xs p-2.5 rounded-xl border border-amber-200 resize-none focus:outline-none focus:border-orange-500" placeholder="例如：SEL光影奇航簡報與互動頁面..."></textarea>
+                </div>
+                <div class="fade-in-stagger delay-2 macaron-card p-5 text-left border-sky-200">
+                    <div class="text-sky-700 font-bold text-sm mb-2"><i class="fa-solid fa-wrench mr-2"></i>我還要修正：</div>
+                    <textarea class="w-full h-24 bg-sky-50/40 text-slate-800 text-xs p-2.5 rounded-xl border border-sky-200 resize-none focus:outline-none focus:border-sky-500" placeholder="例如：補充學習單第三題的情緒引導文字..."></textarea>
+                </div>
+                <div class="fade-in-stagger delay-3 macaron-card p-5 text-left border-2 border-orange-400 bg-amber-50/30">
+                    <div class="text-amber-800 font-bold text-sm mb-2"><i class="fa-regular fa-calendar-days mr-2"></i>下一次實際使用日期：</div>
+                    <input type="date" class="w-full bg-white text-slate-800 text-xs p-2.5 rounded-xl border border-amber-200 mb-3 focus:outline-none focus:border-amber-500">
+                    <div class="text-[11px] text-slate-500">💡 建議為本機專案資料夾加上日期版號 (如: <code>SEL-光影奇航_20260812/</code>)。</div>
+                </div>
+            </div>
+            <div class="speaker-note hidden" data-note="提醒老師寫下實際上課日期，並養成良好的資料夾版本管理習慣。研習順利圓滿結束！"></div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Controls & Progress Bar -->
+    <footer class="no-print h-16 px-6 flex items-center justify-between z-30 bg-white/80 backdrop-blur-md border-t border-amber-100/80 shadow-sm">
+        <!-- Slide Progress Text & Jump -->
+        <div class="flex items-center space-x-3">
+            <span class="text-xs text-slate-500 font-medium">頁次:</span>
+            <span id="slide-num-badge" class="px-3 py-1 bg-amber-100/70 text-amber-900 rounded-lg text-xs font-bold font-mono border border-amber-200">
+                01 / 40
+            </span>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex items-center space-x-3">
+            <button onclick="prevSlide()" class="px-4 py-2 bg-white hover:bg-amber-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-200 shadow-sm active:scale-95">
+                <i class="fa-solid fa-chevron-left"></i>
+                <span class="hidden sm:inline">上一頁</span>
+            </button>
+            <button onclick="nextSlide()" class="px-5 py-2 bg-gradient-to-r from-orange-400 via-rose-400 to-purple-400 hover:from-orange-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm active:scale-95">
+                <span class="hidden sm:inline">下一頁</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Progress Bar Indicator -->
+        <div class="w-24 sm:w-48 bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+            <div id="progress-bar" class="bg-gradient-to-r from-orange-400 via-rose-400 to-purple-400 h-full w-[2.5%] transition-all duration-300"></div>
+        </div>
+    </footer>
+
+    <!-- Grid View Modal (Overview Key: O) -->
+    <div id="grid-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex-col p-6 no-print overflow-y-auto">
+        <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-border-all text-orange-500 text-xl"></i>
+                <h3 class="text-lg font-bold text-slate-800">所有投影片頁面總覽 (40 頁)</h3>
+            </div>
+            <button onclick="toggleGridView()" class="p-2 text-slate-400 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        <div id="grid-cards-container" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+            <!-- Dynamically populated grid cards -->
+        </div>
+    </div>
+
+    <!-- Speaker Notes Floating Drawer (Key: N) -->
+    <div id="notes-drawer" class="fixed top-16 right-4 w-80 max-w-[90vw] macaron-card border-2 border-amber-300 p-4 shadow-xl z-40 hidden no-print">
+        <div class="flex items-center justify-between border-b border-amber-100 pb-2 mb-3">
+            <span class="text-xs font-bold text-amber-800 flex items-center gap-2">
+                <i class="fa-solid fa-note-sticky text-amber-500"></i> 講者備忘錄 & 計時器
+            </span>
+            <span id="elapsed-timer" class="font-mono text-xs text-slate-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">00:00</span>
+        </div>
+        <div id="speaker-note-content" class="text-xs text-slate-700 leading-relaxed h-48 overflow-y-auto">
+            (目前頁面無備忘錄)
+        </div>
+    </div>
+
+    <!-- Notion Markdown Editor Modal (Key: E) -->
+    <div id="notion-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex-col p-6 no-print">
+        <div class="macaron-card p-6 max-w-3xl w-full mx-auto my-auto flex flex-col h-[80vh] border-amber-200">
+            <div class="flex items-center justify-between mb-4 border-b border-amber-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-orange-500 text-lg"></i>
+                    <h3 class="text-base font-bold text-slate-800">Notion 大綱貼上與編輯</h3>
+                </div>
+                <button onclick="toggleNotionEditor()" class="p-2 text-slate-400 hover:text-slate-800">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">貼上您在 Notion 或 Markdown 中整理的簡報規劃，隨時預覽備課備忘記錄：</p>
+            <textarea id="notion-input" class="w-full flex-1 bg-slate-50 text-slate-800 font-mono text-xs p-4 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-400" placeholder="貼上 Notion 內容..."></textarea>
+            <div class="flex justify-end gap-3 mt-4">
+                <button onclick="toggleNotionEditor()" class="px-4 py-2 bg-slate-100 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-200">關閉</button>
+                <button onclick="saveNotionContent()" class="px-4 py-2 bg-orange-400 text-white text-xs font-bold rounded-xl hover:bg-orange-500 shadow-sm">更新備忘資料</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Message Box -->
+    <div id="toast-msg" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-100 text-xs px-4 py-2 rounded-xl shadow-xl z-50 hidden opacity-0 transition-all duration-300">
+        Message
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 40;
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        window.onload = function() {
+            initSlides();
+            initKeyboardListeners();
+            initTouchListeners();
+            initOpticsCanvas();
+            startPresentationTimer();
+            buildGridCards();
+        };
+
+        function initSlides() {
+            showSlide(currentSlide);
+        }
+
+        function showSlide(index) {
+            if (index < 1) index = 1;
+            if (index > totalSlides) index = totalSlides;
+
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, idx) => {
+                if (idx === index - 1) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            currentSlide = index;
+            updateUI();
+            updateSpeakerNotes();
+
+            if (currentSlide === 31) {
+                setTimeout(updateOpticsSim, 100);
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function updateUI() {
+            const numBadge = document.getElementById('slide-num-badge');
+            numBadge.innerText = `${String(currentSlide).padStart(2, '0')} / ${totalSlides}`;
+
+            const progressBar = document.getElementById('progress-bar');
+            const pct = (currentSlide / totalSlides) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            const activeSlideElem = document.querySelectorAll('.slide')[currentSlide - 1];
+            if (activeSlideElem) {
+                const stepName = activeSlideElem.getAttribute('data-step') || '簡報';
+                const stepClass = activeSlideElem.getAttribute('data-step-class') || 'step-tag-ext';
+                const badge = document.getElementById('current-step-badge');
+                badge.innerText = stepName;
+                badge.className = `px-3 py-1 rounded-full text-xs font-bold ${stepClass} hidden sm:inline-block shadow-sm`;
+            }
+        }
+
+        function updateSpeakerNotes() {
+            const activeSlideElem = document.querySelectorAll('.slide')[currentSlide - 1];
+            const noteContainer = document.getElementById('speaker-note-content');
+            if (activeSlideElem) {
+                const noteElem = activeSlideElem.querySelector('.speaker-note');
+                if (noteElem) {
+                    noteContainer.innerHTML = noteElem.getAttribute('data-note') || '此頁尚無特別註記。';
+                } else {
+                    noteContainer.innerText = '此頁尚無特別註記。';
+                }
+            }
+        }
+
+        function initKeyboardListeners() {
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                switch (e.key) {
+                    case 'ArrowRight':
+                    case 'PageDown':
+                    case ' ':
+                        nextSlide();
+                        break;
+                    case 'ArrowLeft':
+                    case 'PageUp':
+                        prevSlide();
+                        break;
+                    case 'Home':
+                        showSlide(1);
+                        break;
+                    case 'End':
+                        showSlide(totalSlides);
+                        break;
+                    case 'o':
+                    case 'O':
+                        toggleGridView();
+                        break;
+                    case 'n':
+                    case 'N':
+                        toggleSpeakerNotes();
+                        break;
+                    case 'e':
+                    case 'E':
+                        toggleNotionEditor();
+                        break;
+                    case 'f':
+                    case 'F':
+                        toggleFullscreen();
+                        break;
+                }
+            });
+        }
+
+        function initTouchListeners() {
+            const container = document.getElementById('slide-container');
+            container.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+
+            container.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide();
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide();
+            }
+        }
+
+        function startPresentationTimer() {
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('elapsed-timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function buildGridCards() {
+            const container = document.getElementById('grid-cards-container');
+            container.innerHTML = '';
+            const slides = document.querySelectorAll('.slide');
+
+            slides.forEach((slide, idx) => {
+                const titleElem = slide.querySelector('h1, h2, h3');
+                const titleText = titleElem ? titleElem.innerText.replace(/[\r\n]+/g, " ") : `Slide ${idx + 1}`;
+                const stepName = slide.getAttribute('data-step') || '簡報';
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-2xl border border-amber-100 bg-white hover:border-orange-400 hover:shadow-md cursor-pointer transition flex flex-col justify-between h-28 relative overflow-hidden group`;
+                card.onclick = () => {
+                    showSlide(idx + 1);
+                    toggleGridView();
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between text-[10px] text-slate-500">
+                        <span class="font-mono font-bold text-orange-500">#${String(idx + 1).padStart(2, '0')}</span>
+                        <span class="px-2 py-0.5 rounded-full bg-slate-100 text-[9px] font-semibold">${stepName}</span>
+                    </div>
+                    <div class="text-xs font-bold text-slate-800 line-clamp-2 my-auto group-hover:text-orange-600 transition">
+                        ${titleText}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleGridView() {
+            const modal = document.getElementById('grid-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleSpeakerNotes() {
+            const drawer = document.getElementById('notes-drawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function toggleNotionEditor() {
+            const modal = document.getElementById('notion-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function saveNotionContent() {
+            toggleNotionEditor();
+            showToast("Notion 大綱資訊已更新！");
+        }
+
+        function copyText(elemId) {
+            const text = document.getElementById(elemId).innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("提示詞內容已複製到剪貼簿！");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('opacity-100'); }, 10);
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                setTimeout(() => { toast.classList.add('hidden'); }, 300);
+            }, 2500);
+        }
+
+        function initOpticsCanvas() {
+            updateOpticsSim();
+            window.addEventListener('resize', updateOpticsSim);
+        }
+
+        function updateOpticsSim() {
+            const canvas = document.getElementById('opticsCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            const lightDist = parseInt(document.getElementById('sim-light-dist').value);
+            const objAngle = parseInt(document.getElementById('sim-obj-angle').value);
+            const objHeight = parseInt(document.getElementById('sim-obj-height').value);
+
+            document.getElementById('val-light-dist').innerText = lightDist;
+            document.getElementById('val-obj-angle').innerText = objAngle;
+            document.getElementById('val-obj-height').innerText = objHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const groundY = canvas.height - 40;
+            const screenX = canvas.width - 60;
+
+            // Draw Ground Surface
+            ctx.beginPath();
+            ctx.moveTo(20, groundY);
+            ctx.lineTo(canvas.width - 20, groundY);
+            ctx.strokeStyle = '#CBD5E1';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw Projection Screen (Wall)
+            ctx.beginPath();
+            ctx.moveTo(screenX, groundY);
+            ctx.lineTo(screenX, 30);
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Positions
+            const objX = canvas.width / 2;
+            const lightX = objX - lightDist;
+            const lightY = groundY - 60;
+
+            // Draw Macaron Warm Light Bulb
+            ctx.beginPath();
+            ctx.arc(lightX, lightY, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#FB8500';
+            ctx.fill();
+            ctx.shadowColor = '#FFB703';
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Object Math Angle
+            const rad = (objAngle * Math.PI) / 180;
+            const objTopX = objX + Math.sin(rad) * objHeight;
+            const objTopY = groundY - Math.cos(rad) * objHeight;
+
+            // Draw Macaron Mint/Cyan Object Stick
+            ctx.beginPath();
+            ctx.moveTo(objX, groundY);
+            ctx.lineTo(objTopX, objTopY);
+            ctx.strokeStyle = '#2A9D8F';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Calculate Projection Shadow Height on Screen
+            const dx = objTopX - lightX;
+            const dy = objTopY - lightY;
+            const slope = dy / dx;
+
+            const shadowY = lightY + slope * (screenX - lightX);
+            const clampedShadowY = Math.max(30, Math.min(groundY, shadowY));
+
+            // Draw Light Rays
+            ctx.beginPath();
+            ctx.setLineDash([4, 4]);
+            ctx.moveTo(lightX, lightY);
+            ctx.lineTo(screenX, clampedShadowY);
+            ctx.strokeStyle = 'rgba(251, 133, 0, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw Shadow on Wall
+            ctx.beginPath();
+            ctx.moveTo(screenX, groundY);
+            ctx.lineTo(screenX, clampedShadowY);
+            ctx.strokeStyle = 'rgba(100, 116, 139, 0.25)';
+            ctx.lineWidth = 12;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(screenX, groundY);
+            ctx.lineTo(screenX, clampedShadowY);
+            ctx.strokeStyle = '#8E94F2';
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+        }
+
+        function resetOpticsSim() {
+            document.getElementById('sim-light-dist').value = 150;
+            document.getElementById('sim-obj-angle').value = 45;
+            document.getElementById('sim-obj-height').value = 80;
+            updateOpticsSim();
+            showToast("光學模擬器已恢復預設值！");
+        }
+
+        function simulateNetlifyUpload() {
+            const idle = document.getElementById('dropzone-idle');
+            const uploading = document.getElementById('dropzone-uploading');
+            const success = document.getElementById('dropzone-success');
+            const progressBar = document.getElementById('upload-progress-bar');
+
+            idle.classList.add('hidden');
+            uploading.classList.remove('hidden');
+
+            let pct = 0;
+            const interval = setInterval(() => {
+                pct += 15;
+                progressBar.style.width = `${pct}%`;
+                if (pct >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        uploading.classList.add('hidden');
+                        success.classList.remove('hidden');
+                        showToast("Netlify 免費託管部署完成！網址已生成。");
+                    }, 300);
+                }
+            }, 120);
+        }
+
+        function resetNetlifySim(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('dropzone-idle').classList.remove('hidden');
+            document.getElementById('dropzone-uploading').classList.add('hidden');
+            document.getElementById('dropzone-success').classList.add('hidden');
+            document.getElementById('upload-progress-bar').style.width = '0%';
+        }
+    </script>
+</body>
+</html>

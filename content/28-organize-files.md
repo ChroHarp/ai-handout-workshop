@@ -23,3 +23,5 @@ animation: fade-up
 - 手機單欄與簡單互動
 
 **不需要框架或建置工具，但翻頁等操作仍需要 JavaScript。**
+
+[開啟範例：用簡報規劃表測試免費 Gemini 生成簡報](/example/ai_presentation-gemini.html)

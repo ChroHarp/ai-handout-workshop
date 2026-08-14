@@ -117,7 +117,7 @@ DEVELOPMENT_HANDOFF.md
 
 - `.codex-temp/`：本機預覽紀錄，可重新產生。
 - `public/.sites-runtime/`：舊 Sites／本機執行產物，不屬於目前 Vercel 單軌部署。
-- `public/example/ai_presentation-gemini.html`：使用者放入的額外範例，是否公開或提交尚未確認。
+- `public/example/ai_presentation-gemini.html`：P28 連結的公開範例，用於測試免費 Gemini 能否依簡報規劃表產生有效簡報；下次提交時一併納入。
 
 ## 已完成的專案清理
 
@@ -134,7 +134,7 @@ DEVELOPMENT_HANDOFF.md
 - `node_modules/`：目前本機開發依賴。
 - 所有實際被程式或 Markdown 引用的圖片。
 - `public/example/point_light_shadow_projection.html`：P31 正式互動範例。
-- `public/example/ai_presentation-gemini.html`：用途仍待使用者確認，未擅自刪除。
+- `public/example/ai_presentation-gemini.html`：P28 使用的 Gemini 簡報生成範例，保留並應隨下一次提交納入。
 
 清理後已重跑 lint、3 項簡報測試與 production build，均無錯誤；lint 仍有 4 個既有 `<img>` warning。
 
