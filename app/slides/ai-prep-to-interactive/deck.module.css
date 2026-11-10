@@ -262,7 +262,17 @@
 }
 
 .coverQr img { width: 100%; height: auto; display: block; }
- .coverQr figcaption { margin-top: .35em; font-size: clamp(14px, .95vw, 17px); font-weight: 800; line-height: 1.25; text-align: center; }
+.coverQr figcaption { margin-top: .35em; font-size: clamp(14px, .95vw, 17px); font-weight: 800; line-height: 1.25; text-align: center; }
+.coverQrLabel { display: block; }
+.coverQrUrl {
+  display: block;
+  margin-top: .2em;
+  font-size: clamp(11px, .75vw, 13px);
+  font-weight: 700;
+  color: #176b9b;
+  letter-spacing: .01em;
+  word-break: break-all;
+}
 
 .practiceLayout {
   height: 100%;
@@ -329,10 +339,43 @@
   font-weight: 800;
 }
 
-.controls { position: fixed; right: 22px; bottom: 18px; z-index: 20; display: flex; gap: 8px; opacity: .18; transition: opacity 180ms ease; }
+.controls { position: fixed; right: 22px; bottom: 18px; z-index: 20; display: flex; align-items: center; gap: 8px; opacity: .18; transition: opacity 180ms ease; }
 .stage:hover .controls,
 .controls:focus-within { opacity: 1; }
-.controls button { width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; color: white; background: rgba(7,27,53,.84); font-size: 24px; line-height: 1; }
+.quickNavSelect {
+  height: 44px;
+  max-width: clamp(140px, 18vw, 240px);
+  padding: 0 32px 0 14px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  color: white;
+  background: rgba(7, 27, 53, .88) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1.5 2l4.5 4.5 4.5-4.5'/%3E%3C/svg%3E") no-repeat calc(100% - 12px) center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 42px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  backdrop-filter: blur(8px);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.quickNavSelect:hover,
+.quickNavSelect:focus-visible {
+  border-color: rgba(255, 255, 255, .6);
+  background-color: rgba(11, 37, 69, .96);
+  outline: none;
+}
+.quickNavSelect option {
+  color: #0b2545;
+  background: #ffffff;
+  font-size: 15px;
+  padding: 6px 10px;
+}
+.controls button { width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; color: white; background: rgba(7,27,53,.84); font-size: 24px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .controls button:disabled { opacity: .32; cursor: default; }
 .progress { position: fixed; inset: auto 0 0; z-index: 18; height: 5px; background: rgba(11,37,69,.12); }
 .progress span { display: block; height: 100%; background: var(--accent); transition: width 240ms ease; }
@@ -374,6 +417,7 @@
   .layoutFullImage .figure::after { background: linear-gradient(0deg, rgba(5,24,47,.98) 0%, rgba(5,24,47,.64) 60%, rgba(5,24,47,.16) 100%); }
   .coverQr { right: 7%; bottom: 2.5%; width: 118px; }
   .controls { opacity: .9; }
+  .quickNavSelect { max-width: 120px; font-size: 13px; padding: 0 24px 0 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -597,9 +641,34 @@
 }
 
 .coverQrExpanded figure {
+  padding: .9em;
+  border-radius: 1.1em;
   box-shadow:
     0 0 0 100vmax rgba(4, 18, 35, .72),
     0 22px 60px rgba(4, 18, 35, .38);
+}
+
+.coverQrExpanded figcaption {
+  margin-top: .85em;
+  padding: 0 .2em;
+}
+
+.coverQrExpanded .coverQrLabel {
+  font-size: clamp(18px, 1.6vw, 24px);
+  color: #0b2545;
+}
+
+.coverQrExpanded .coverQrUrl {
+  display: inline-block;
+  margin-top: .45em;
+  padding: .35em .8em;
+  border-radius: .45em;
+  background: #eef6fa;
+  border: 1px solid #c8e1f0;
+  font-size: clamp(16px, 1.4vw, 22px);
+  font-weight: 850;
+  color: #0d5d87;
+  letter-spacing: .03em;
 }
 
 .slide[data-effects~="click-sections"] {

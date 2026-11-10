@@ -62,6 +62,10 @@ function CoverQr({ slide }: { slide: Slide }) {
 
   if (!slide.qrImage) return null;
 
+  const urlText = slide.qrLink
+    ? slide.qrLink.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    : "ai-handout-workshop.vercel.app";
+
   return (
     <button
       type="button"
@@ -77,7 +81,10 @@ function CoverQr({ slide }: { slide: Slide }) {
     >
       <figure>
         <img src={slide.qrImage} alt={slide.qrAlt || ""} />
-        {slide.qrLabel ? <figcaption>{slide.qrLabel}</figcaption> : null}
+        <figcaption>
+          <span className={styles.coverQrLabel}>{slide.qrLabel || "掃描開啟主頁"}</span>
+          <span className={styles.coverQrUrl}>{urlText}</span>
+        </figcaption>
       </figure>
     </button>
   );
@@ -164,7 +171,7 @@ function SlideContent({ slide }: { slide: Slide }) {
 
 export default function SlideDeck({ slides }: { slides: Slide[] }) {
   const advanceEffectRef = useRef<() => boolean>(() => false);
-  const { index, next, previous, touchHandlers } = useDeckNavigation(
+  const { index, goTo, next, previous, touchHandlers } = useDeckNavigation(
     slides.length,
     advanceEffectRef,
   );
@@ -226,16 +233,39 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
         </div>
       </article>
 
-      <nav className={styles.controls}>
-        <button onClick={previous} disabled={index === 0} aria-label="上一張投影片">
+      <nav className={styles.controls} aria-label="簡報控制">
+        <select
+          className={styles.quickNavSelect}
+          value={index}
+          onChange={(event) => {
+            goTo(Number(event.target.value));
+            event.currentTarget.blur();
+          }}
+          aria-label="快選頁面"
+          title="快選頁面"
+        >
+          {slides.map((item, itemIndex) => (
+            <option key={item.fileName} value={itemIndex}>
+              {item.id}. {item.title}
+            </option>
+          ))}
+        </select>
+        <button onClick={previous} disabled={index === 0} aria-label="上一張投影片" title="上一張 (←)">
           ←
         </button>
-        <button onClick={next} disabled={index === slides.length - 1} aria-label="下一張投影片">
+        <button onClick={next} disabled={index === slides.length - 1} aria-label="下一張投影片" title="下一張 (→)">
           →
         </button>
         <button
-          onClick={() => document.documentElement.requestFullscreen?.()}
-          aria-label="進入全螢幕"
+          onClick={() => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen?.();
+            } else {
+              document.exitFullscreen?.();
+            }
+          }}
+          aria-label="全螢幕切換"
+          title="全螢幕 (F)"
         >
           ⛶
         </button>

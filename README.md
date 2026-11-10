@@ -66,7 +66,7 @@ videoCaption: 影片操作說明
 - 刪除：刪除對應的 Markdown 檔案。
 - 調整順序：修改檔名前兩碼，並保持從 `01` 開始連續編號。
 
-目前共有 43 張投影片。調整數量後，請同步更新 `tests/slides-markdown.test.mjs` 的預期頁數。
+目前共有 48 張投影片。調整數量後，請同步更新 `tests/slides-markdown.test.mjs` 的預期頁數。
 
 ## 切換版型
 
@@ -123,13 +123,13 @@ npm.cmd run build
 - `npm.cmd install`：安裝相依套件。
 - `npm.cmd run dev`：啟動可即時更新的開發預覽。
 - `npm.cmd run build`：產生 Vercel／Next.js 使用的正式建置。
-- `npm.cmd test`：建置並檢查 43 張 Markdown、版型與媒體檔案。
+- `npm.cmd test`：建置並檢查 48 張 Markdown、版型與媒體檔案。
 
 ## Netlify 教學段落
 
-- 第 34–38 頁是五個逐步操作頁。
-- 第 36 頁是可重複練習的拖曳／點擊互動。
-- 第 37 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
+- 第 37–41 頁是五個逐步操作頁。
+- 第 39 頁是可重複練習的拖曳／點擊互動。
+- 第 40 頁播放 `public/videos/ai-prep-to-interactive/netlify-drop-practice.webm`。
 - 這段互動只模擬操作，不會登入 Netlify，也不會真的公開任何檔案。
 
 ## GitHub 與 Vercel
