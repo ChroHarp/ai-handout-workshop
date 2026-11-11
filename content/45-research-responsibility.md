@@ -1,14 +1,14 @@
 ---
-title: 指導獨立研究時，確認學生的三個責任
-layout: cards
+title: 確認學生保有研究判斷
+layout: full-image
 section: 延伸｜研究 AI 使用邊界
-accent: blue
-animation: fade-up
-effects: cards-stagger
+eyebrow: 延伸｜獨立研究與 AI
+image: /images/ai-prep-to-interactive/research-boundaries-cover.png
+imageAlt: 與既有扉頁同風格的師生研究情境，學生對照 AI 建議、研究筆記與實驗證據
+accent: teal
+animation: fade-in
 ---
 
-- **協助程度** — 不自訂死板百分比門檻；檢視 AI 協助了哪些工作，以及學生的實質判斷與貢獻（參賽依當年度簡章確認）
-- **正確性** — 文獻必須回到原始來源查核，AI 提出的方法要能解釋與重做；大量數值測試不等同一般數學證明
-- **研究主體** — 保留學生嘗試、卡關、接受建議與修改的過程；誠實區分學生發現、教師指導與 AI 協助，不可代做
+說清楚學生、教師與 AI 的貢獻。
 
-重點不在使用了哪個工具，而在學生能否理解、驗證並說清楚關鍵選擇。
+查核來源、驗證方法，留下自己的判斷與探索歷程。
