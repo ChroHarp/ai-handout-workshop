@@ -27,6 +27,14 @@ function SlideMedia({ slide }: { slide: Slide }) {
     );
   }
 
+  if (slide.embedUrl && (slide.layout === "image-left" || slide.layout === "image-right")) {
+    return (
+      <figure className={styles.figure} data-role="slide-media">
+        <iframe src={slide.embedUrl} title={slide.embedTitle || slide.title} allowFullScreen />
+      </figure>
+    );
+  }
+
   if (!slide.image) return null;
 
   return (
