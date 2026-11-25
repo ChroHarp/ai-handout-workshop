@@ -115,6 +115,7 @@ function elementsFrom(nodes: Iterable<Element | null | undefined>) {
 export function useSlideEffects(
   slide: Slide | undefined,
   advanceEffectRef: MutableRefObject<() => boolean>,
+  next: () => void,
 ) {
   const articleRef = useRef<HTMLElement>(null);
 
@@ -122,9 +123,11 @@ export function useSlideEffects(
     const article = articleRef.current;
     advanceEffectRef.current = () => false;
     if (!article || !slide?.effects) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const effects = new Set(slide.effects.split(/[\s,]+/).filter(Boolean));
+    const workflowCards = effects.has("workflow-cards");
+    if (!workflowCards && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const animations: Animation[] = [];
     const cleanups: Array<() => void> = [];
     const hidden = new Set<HTMLElement>();
@@ -173,6 +176,26 @@ export function useSlideEffects(
         const animation = fadeIn(card, 120 + index * 170, 600);
         if (animation) animations.push(animation);
       });
+    }
+
+    if (workflowCards) {
+      const list = markdowns[0]?.querySelector<HTMLElement>(":scope > ul");
+      const cards = list?.querySelectorAll(":scope > li");
+      if (list && cards?.length === 4) {
+        const showStage = (stage: number) => {
+          list.dataset.workflowStage = String(stage);
+          cards.forEach((card, index) => {
+            const visible = stage === 0 ? index === 0 : index > 0 && index <= stage;
+            card.setAttribute("aria-hidden", String(!visible));
+          });
+        };
+        showStage(0);
+        [1, 2, 3].forEach((stage) => stages.push(() => showStage(stage)));
+        cleanups.push(() => {
+          delete list.dataset.workflowStage;
+          cards.forEach((card) => card.removeAttribute("aria-hidden"));
+        });
+      }
     }
 
     if (effects.has("click-sections")) {
@@ -300,7 +323,11 @@ export function useSlideEffects(
       ) {
         return;
       }
-      revealNext();
+      if (workflowCards) {
+        next();
+      } else {
+        revealNext();
+      }
     };
     if (stages.length) article.addEventListener("click", onClick);
 
@@ -316,7 +343,7 @@ export function useSlideEffects(
         element.style.transform = "";
       });
     };
-  }, [advanceEffectRef, slide?.fileName, slide?.effects]);
+  }, [advanceEffectRef, next, slide?.fileName, slide?.effects]);
 
   return articleRef;
 }

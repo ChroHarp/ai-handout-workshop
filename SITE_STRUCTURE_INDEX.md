@@ -1,6 +1,6 @@
 # AI 備課到互動教材｜網站交接與結構索引
 
-更新日期：2026-11-19
+更新日期：2026-11-25
 
 本文件是網站內容、頁面順序與檔案責任的索引。修改頁面、換頁、頁數、檔名或架構後，必須同步更新本文件。
 
@@ -13,7 +13,7 @@
 - 每張 A4 已拆成獨立 TSX 頁面元件；入口頁只負責載入講義閱讀器。
 - 單頁密度規則已移至各頁 CSS Module；共用視覺與列印規則仍由主 CSS 管理。
 - 自動測試已固定檢查15張頁面、目前掛載頁面順序及 Step 4 內容順序。
-- 新增獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；52 張投影片正文由根目錄 `content/*.md` 載入。
+- 獨立 HTML 簡報路由 `/slides/ai-prep-to-interactive`；52 張投影片正文由根目錄 `content/*.md` 載入。
 
 ## 主要檔案
 
@@ -71,7 +71,8 @@ tests/
 - 圖片位置：`public/images/ai-prep-to-interactive/`
 - 編修說明：`app/slides/ai-prep-to-interactive/README.md`
 - React／TSX 只負責版型、Markdown 呈現、翻頁與動畫；投影片可見文字不得移入程式檔。
-- P31 為 iframe 互動展示頁，嵌入 `public/example/point_light_shadow_projection.html`；P34–P36 為血液循環三階段演進與截圖；P44 為 ManimGX 簡介；P46–P50 為研究 AI 使用邊界；P52 為 Ending。
+- P43 以數學教學動畫為例，用正方形卡片演示流程重整。畫面從單張「產出」開始，交錯淡化為「工作」，再依序從左側加入「工具」與「規劃」，每一步的卡片組維持置中。可用翻頁鍵或點擊推進。
+- P31 為 iframe 互動展示頁，嵌入 `public/example/point_light_shadow_projection.html`；P34–P36 為血液循環三階段演進與截圖；P44 為 ManimGX 案例及直式影片，P45 為成果驗收，P46–P50 為研究 AI 使用邊界，P51 為行動承諾，P52 為結尾。
 - 簡報背景預載目前頁後方兩頁的圖片與 QR，避免一次下載全部 52 頁。
 - P1 與網站首頁共用 `public/images/home/site-qr.png`，連到正式網站。
 ## 講義頁面順序
@@ -144,7 +145,7 @@ Vercel 已連接 GitHub；`main` 更新後由 Vercel 自動建置與部署。
 
 ## 2026-11-11 研究段視覺修訂
 
-- P45 沿用 P29 的 full-image 扉頁版型，新增 research-boundaries-cover.png。
-- P46 完整呈現討論的七項 ISEF 使用情境，research-rules 僅調整此頁表格間距。
-- P47 三欄紀錄卡片，P48 左側完整案例／右側一分鐘填寫練習；專屬 effects 樣式不影響其他頁。
+- P46 沿用 P29 的 full-image 扉頁版型，新增 research-boundaries-cover.png。
+- P47 完整呈現討論的七項 ISEF 使用情境，research-rules 僅調整此頁表格間距。
+- P48 三欄紀錄卡片，P49 左側完整案例／右側一分鐘填寫練習；專屬 effects 樣式不影響其他頁。
 - 底圖由內建圖片生成工具製作，以 scenario-p28-v2.png 為風格參考：同一白髮藍眼導師與學生研究場景，深藍青綠、暖色檯燈、右側人物與筆記／實驗／AI 對照，左側留白，16:9。

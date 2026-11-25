@@ -489,6 +489,92 @@
   line-height: 1.25;
 }
 
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul) {
+  --workflow-gap: clamp(7px, 1.5vw, 24px);
+  --workflow-max-card: min(38dvh, 298px);
+  width: min(100%, calc(3 * var(--workflow-max-card) + 2 * var(--workflow-gap)));
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  justify-self: center;
+  gap: 0;
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(li) {
+  grid-area: 1 / 1;
+  width: calc((100% - 2 * var(--workflow-gap)) / 3);
+  aspect-ratio: 1;
+  min-height: 0;
+  padding: clamp(6px, 1.3vw, 22px);
+  align-items: center;
+  gap: .3em;
+  border-radius: clamp(8px, 1.1vw, 16px);
+  text-align: center;
+  font-size: clamp(18px, 1.65vw, 26px);
+  line-height: 1.36;
+  opacity: 0;
+  visibility: hidden;
+  translate: var(--workflow-shift, 0) 0;
+  transition: opacity 380ms ease, translate 500ms cubic-bezier(.2,.72,.25,1), visibility 0s linear 380ms;
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(li > strong) {
+  font-size: clamp(17px, 3.1vw, 40px);
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(li[aria-hidden="false"]),
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul:not([data-workflow-stage]) > li:first-child) {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(li:last-child) {
+  --workflow-shift: calc(-50% - var(--workflow-gap) / 2);
+  background: color-mix(in srgb, var(--accent) 12%, white);
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul[data-workflow-stage="2"] > li:nth-child(2)) {
+  --workflow-shift: calc(50% + var(--workflow-gap) / 2);
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul[data-workflow-stage="2"] > li:nth-child(3)) {
+  --workflow-shift: calc(-50% - var(--workflow-gap) / 2);
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul[data-workflow-stage="3"] > li:nth-child(2)) {
+  --workflow-shift: calc(100% + var(--workflow-gap));
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul[data-workflow-stage="3"] > li:nth-child(3)) {
+  --workflow-shift: 0;
+}
+
+.layoutCards[data-effects~="workflow-cards"] .markdown :global(ul[data-workflow-stage="3"] > li:nth-child(4)) {
+  --workflow-shift: calc(-100% - var(--workflow-gap));
+}
+
+@media (max-width: 899px) {
+  .layoutCards[data-effects~="workflow-cards"] .markdown :global(li) {
+    font-size: clamp(12px, 2.5vw, 20px);
+  }
+}
+
+@media (max-width: 359px) {
+  .layoutCards[data-effects~="workflow-cards"] .markdown :global(ul) {
+    width: calc(100% + 6vw);
+  }
+
+  .layoutCards[data-effects~="workflow-cards"] .markdown :global(li) {
+    padding: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layoutCards[data-effects~="workflow-cards"] .markdown :global(li) {
+    transition: none;
+  }
+}
+
 .layoutPrompt .body,
 .layoutFolderTree .body {
   display: grid;

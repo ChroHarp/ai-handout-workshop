@@ -184,7 +184,7 @@ export default function SlideDeck({ slides }: { slides: Slide[] }) {
     advanceEffectRef,
   );
   const slide = slides[index];
-  const articleRef = useSlideEffects(slide, advanceEffectRef);
+  const articleRef = useSlideEffects(slide, advanceEffectRef, next);
   useEffect(() => {
     const sources = new Set(
       slides.slice(index + 1, index + 3).flatMap((upcomingSlide) =>
