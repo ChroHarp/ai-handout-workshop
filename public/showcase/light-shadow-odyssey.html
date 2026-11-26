@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>光影奇航｜沉浸式情緒暗室美術館</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg-deep: #05070d;
+      --bg-mid: #0b1220;
+      --accent: #f5b963;
+      --accent-rgb: 245, 185, 99;
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(226, 232, 240, 0.78);
+      --text-muted: rgba(148, 163, 184, 0.75);
+      --glass-bg: rgba(10, 16, 30, 0.68);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+      --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 60% 35%, var(--bg-mid) 0%, var(--bg-deep) 78%);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    #stage-canvas,
+    #fallback-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+    }
+
+    #fallback-canvas {
+      display: none;
+    }
+
+    /* Subtle museum vignette & film grain */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(ellipse at center, transparent 48%, rgba(3, 5, 10, 0.78) 100%),
+        linear-gradient(180deg, rgba(4, 6, 12, 0.55) 0%, transparent 22%, transparent 76%, rgba(4, 6, 12, 0.75) 100%);
+    }
+
+    .film-grain {
+      position: fixed;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.035;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.9) 0.6px, transparent 0.6px);
+      background-size: 3px 3px;
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      pointer-events: none;
+    }
+
+    .hud-top > * {
+      pointer-events: auto;
+    }
+
+    .exhibition-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--text-secondary);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.9);
+      transition: background 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .act-counter {
+      font-family: var(--mono);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255, 255, 255, 0.14);
+      transition: color 0.5s ease;
+    }
+
+    .hud-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+    }
+
+    .hud-btn:hover {
+      border-color: rgba(var(--accent-rgb), 0.55);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .hud-btn[aria-pressed="true"] {
+      border-color: rgba(var(--accent-rgb), 0.7);
+      color: var(--accent);
+      background: rgba(var(--accent-rgb), 0.12);
+    }
+
+    /* Editorial Act Container */
+    .acts-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .act-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 84px clamp(24px, 6vw, 88px) 96px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(18px);
+      transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0.65s;
+      pointer-events: none;
+    }
+
+    .act-panel.is-active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .act-card {
+      pointer-events: auto;
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .act-panel[data-align="wide"] .act-card {
+      max-width: 680px;
+    }
+
+    .act-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      transition: color 0.5s ease;
+    }
+
+    .act-eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.8;
+    }
+
+    .act-title {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: clamp(28px, 4.1vw, 48px);
+      line-height: 1.24;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      text-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+      margin-bottom: 18px;
+    }
+
+    .act-lead {
+      font-size: clamp(14px, 1.55vw, 17px);
+      line-height: 1.8;
+      color: var(--text-secondary);
+      font-weight: 300;
+      margin-bottom: 24px;
+      max-width: 48ch;
+    }
+
+    .act-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(10, 16, 30, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(14px);
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #f1f5f9;
+    }
+
+    /* Glass Interactive Panel */
+    .glass-box {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px 22px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .glass-box.mood-glow {
+      border-color: rgba(var(--accent-rgb), 0.42);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 36px rgba(var(--accent-rgb), 0.14);
+    }
+
+    /* Act II Controls */
+    .control-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .mono-readout {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(var(--accent-rgb), 0.12);
+      border: 1px solid rgba(var(--accent-rgb), 0.28);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid #0b1220;
+      box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.85);
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid #0b1220;
+      box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.85);
+    }
+
+    .shape-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .pill-btn {
+      flex: 1 1 0;
+      min-width: 88px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .pill-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: #fff;
+    }
+
+    .pill-btn.is-selected {
+      background: rgba(var(--accent-rgb), 0.18);
+      border-color: rgba(var(--accent-rgb), 0.65);
+      color: #ffffff;
+      font-weight: 500;
+      box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.22);
+    }
+
+    /* Act III Mood Spectrum */
+    .mood-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .mood-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .mood-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .mood-btn.is-selected {
+      background: rgba(var(--accent-rgb), 0.16);
+      border-color: rgba(var(--accent-rgb), 0.72);
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .mood-swatch {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sel-quote {
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.65;
+      color: #ffffff;
+      padding-left: 14px;
+      border-left: 2px solid var(--accent);
+      margin-bottom: 10px;
+      transition: border-color 0.5s ease;
+    }
+
+    .sel-prompt {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    /* Act IV Collaboration Layers */
+    .layer-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .layer-chip {
+      padding: 12px 12px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .layer-chip.is-highlight {
+      background: rgba(var(--accent-rgb), 0.14);
+      border-color: rgba(var(--accent-rgb), 0.55);
+    }
+
+    .layer-num {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .layer-name {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .layer-desc {
+      display: block;
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--accent-rgb), 0.65);
+      background: rgba(var(--accent-rgb), 0.18);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .cta-btn:hover {
+      background: rgba(var(--accent-rgb), 0.28);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.24);
+    }
+
+    /* Bottom Navigation */
+    .hud-bottom {
+      position: fixed;
+      bottom: 22px;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      pointer-events: none;
+    }
+
+    .nav-pill {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav-arrow {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .nav-arrow:hover:not(:disabled) {
+      border-color: rgba(var(--accent-rgb), 0.65);
+      color: #fff;
+    }
+
+    .nav-arrow:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 4px;
+    }
+
+    .dot-btn {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.24);
+      cursor: pointer;
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
+    }
+
+    .dot-btn.is-active {
+      width: 28px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.75);
+    }
+
+    .backstage-fab {
+      position: fixed;
+      right: 28px;
+      bottom: 22px;
+      z-index: 22;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid rgba(var(--accent-rgb), 0.4);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: #f8fafc;
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      transition: all 0.25s ease;
+    }
+
+    .backstage-fab:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* Backstage Drawer */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: rgba(3, 5, 11, 0.56);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .drawer-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      width: min(460px, calc(100vw - 32px));
+      z-index: 35;
+      border-radius: 22px;
+      background: rgba(8, 13, 24, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.72);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(calc(100% + 28px));
+      transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .drawer-title {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .drawer-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .drawer-body {
+      padding: 18px 22px 24px;
+      overflow-y: auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .drawer-section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tech-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+    }
+
+    .prompt-step {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .prompt-step h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .prompt-step p {
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 760px) {
+      .hud-top {
+        padding: 14px 16px;
+      }
+      .exhibition-badge span.badge-text {
+        display: none;
+      }
+      .act-panel {
+        align-items: flex-end;
+        padding: 72px 16px 86px;
+      }
+      .layer-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .backstage-fab {
+        right: 16px;
+        bottom: 74px;
+        height: 36px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage-canvas" aria-hidden="true"></canvas>
+  <canvas id="fallback-canvas" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="film-grain" aria-hidden="true"></div>
+
+  <header class="hud-top">
+    <div class="exhibition-badge">
+      <span class="badge-dot" aria-hidden="true"></span>
+      <span class="badge-text">EXHIBITION · 光影奇航</span>
+      <span class="act-counter" id="act-counter">01 / 04</span>
+    </div>
+    <div class="hud-actions">
+      <button type="button" class="hud-btn" id="btn-audio" aria-pressed="false" title="切換環境音景 (M)">
+        <span id="audio-icon">🔇</span>
+        <span id="audio-label">音景：關</span>
+      </button>
+      <button type="button" class="hud-btn" id="btn-fullscreen" title="切換全螢幕 (F)">
+        <span>⛶</span>
+        <span>全螢幕</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="acts-stage">
+    <!-- ACT 01 -->
+    <section class="act-panel is-active" data-act="0" aria-label="第 01 幕：當一束光遇見阻擋">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 01 · THE BEAM</p>
+        <h1 class="act-title">當簡報成為一座<br />暗室美術館</h1>
+        <p class="act-lead">
+          同一套「SEL 光影奇航」課程，上午我們做出結構清楚的單檔 HTML 簡報；現在把「換頁」變成鏡頭推軌，讓一束光在黑室裡替老師說故事。
+        </p>
+        <div class="act-hint">
+          <span>移動滑鼠牽引光影 · 按</span>
+          <span class="kbd">→</span>
+          <span>或簡報筆進入下一幕</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 02 -->
+    <section class="act-panel" data-act="1" aria-label="第 02 幕：角度決定你看見的形狀">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 02 · GEOMETRY OF SHADOW</p>
+        <h2 class="act-title">角度決定你<br />看見的形狀</h2>
+        <p class="act-lead">
+          實體物沒有變，但光源移動一度，牆上的影子就變成截然不同的敘事。試著直接拖動光源與切換立體雕塑：
+        </p>
+        <div class="glass-box">
+          <div class="control-grid">
+            <div class="slider-row">
+              <div class="slider-header">
+                <label for="slider-azimuth">光源方位角</label>
+                <span class="mono-readout" id="readout-azimuth">+18°</span>
+              </div>
+              <input id="slider-azimuth" type="range" min="-55" max="55" step="1" value="18" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-header">
+                <label for="slider-elevation">光源高度</label>
+                <span class="mono-readout" id="readout-elevation">3.4 m</span>
+              </div>
+              <input id="slider-elevation" type="range" min="1.2" max="5.4" step="0.1" value="3.4" />
+            </div>
+            <div class="shape-pills" role="group" aria-label="切換雕塑幾何體">
+              <button type="button" class="pill-btn is-selected" data-shape="cube">立方體</button>
+              <button type="button" class="pill-btn" data-shape="octahedron">稜晶</button>
+              <button type="button" class="pill-btn" data-shape="torusKnot">扭結體</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 03 -->
+    <section class="act-panel" data-act="2" aria-label="第 03 幕：同一道陰影，不同的感受">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 03 · EMOTIONAL SPECTRUM</p>
+        <h2 class="act-title">同一道陰影，<br />不同的感受</h2>
+        <p class="act-lead">
+          從物理投影走進 SEL 情緒覺察。點選不同情緒光譜，整個 3D 展廳的光線色溫、粒子與提問會同步呼吸切換：
+        </p>
+        <div class="glass-box mood-glow" id="mood-card">
+          <div class="mood-grid" role="group" aria-label="情緒色溫選擇">
+            <button type="button" class="mood-btn" data-mood="calm">
+              <span class="mood-swatch" style="background:#5eead4; box-shadow:0 0 10px #5eead4;"></span>
+              <span>寧靜・月光藍</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="anxious">
+              <span class="mood-swatch" style="background:#a78bfa; box-shadow:0 0 10px #a78bfa;"></span>
+              <span>焦慮・冷冽紫</span>
+            </button>
+            <button type="button" class="mood-btn is-selected" data-mood="warm">
+              <span class="mood-swatch" style="background:#f5b963; box-shadow:0 0 10px #f5b963;"></span>
+              <span>溫暖・琥珀金</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="courage">
+              <span class="mood-swatch" style="background:#fb7185; box-shadow:0 0 10px #fb7185;"></span>
+              <span>勇氣・熾陽橘</span>
+            </button>
+          </div>
+          <blockquote class="sel-quote" id="sel-quote">「換一個靠近的角度，輪廓就變得溫柔。」</blockquote>
+          <p class="sel-prompt" id="sel-prompt">課堂提問：最近有沒有哪件事，換個位置看之後突然沒那麼尖銳了？</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 04 -->
+    <section class="act-panel" data-act="3" data-align="wide" aria-label="第 04 幕：這不是魔法，是人機協作的第四層次">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 04 · BEYOND SLIDES</p>
+        <h2 class="act-title">這不是魔法，<br />是協作的第四層次</h2>
+        <p class="act-lead">
+          你不需要手寫一行 Three.js 矩陣。當老師站上「規劃」的位置，決定鏡頭敘事與教學提問，AI 就能替你搭建整座互動舞台。
+        </p>
+        <div class="layer-strip">
+          <div class="layer-chip">
+            <span class="layer-num">01</span>
+            <span class="layer-name">產出</span>
+            <span class="layer-desc">幫我做光影簡報</span>
+          </div>
+          <div class="layer-chip">
+            <span class="layer-num">02</span>
+            <span class="layer-name">工作</span>
+            <span class="layer-desc">讀懂分鏡與四幕節奏</span>
+          </div>
+          <div class="layer-chip">
+            <span class="layer-num">03</span>
+            <span class="layer-name">工具</span>
+            <span class="layer-desc">調度 3D 光影與音景</span>
+          </div>
+          <div class="layer-chip is-highlight">
+            <span class="layer-num">04</span>
+            <span class="layer-name">規劃</span>
+            <span class="layer-desc">老師定義體驗與提問</span>
+          </div>
+        </div>
+        <button type="button" class="cta-btn" id="btn-open-drawer-inline">
+          <span>🔍</span>
+          <span>打開「拆解幕後」，看 3 輪 Prompt 如何迭代</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="hud-bottom" aria-label="幕次切換">
+    <div class="nav-pill">
+      <button type="button" class="nav-arrow" id="btn-prev" aria-label="上一幕" title="上一幕 (←)">←</button>
+      <div class="dots" id="act-dots" role="tablist" aria-label="幕次指示點">
+        <button type="button" class="dot-btn is-active" data-goto="0" aria-label="第 1 幕"></button>
+        <button type="button" class="dot-btn" data-goto="1" aria-label="第 2 幕"></button>
+        <button type="button" class="dot-btn" data-goto="2" aria-label="第 3 幕"></button>
+        <button type="button" class="dot-btn" data-goto="3" aria-label="第 4 幕"></button>
+      </div>
+      <button type="button" class="nav-arrow" id="btn-next" aria-label="下一幕" title="下一幕 (→)">→</button>
+    </div>
+  </nav>
+
+  <button type="button" class="backstage-fab" id="btn-drawer" aria-expanded="false" aria-controls="backstage-drawer" title="拆解幕後 (B)">
+    <span>🔍</span>
+    <span>拆解幕後</span>
+  </button>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer" id="backstage-drawer" aria-label="拆解幕後">
+    <div class="drawer-header">
+      <h2 class="drawer-title">🔍 拆解幕後｜三輪迭代出來的水準</h2>
+      <button type="button" class="drawer-close" id="btn-close-drawer" aria-label="關閉抽屜">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div>
+        <p class="drawer-section-label">ARCHITECTURE · 單檔即可運行的技術底座</p>
+        <div class="tech-tags">
+          <span class="tech-tag">單檔 HTML</span>
+          <span class="tech-tag">Three.js r128 即時陰影</span>
+          <span class="tech-tag">空間運鏡 Lerp</span>
+          <span class="tech-tag">Web Audio 合成音景</span>
+          <span class="tech-tag">2D Canvas 降級備援</span>
+        </div>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 1 輪｜先有「空間分鏡」，再寫畫面</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「把 SEL 光影奇航改成 4 幕暗室美術館簡報，支援方向鍵與簡報筆切幕。不要平面切頁，我要同一個 3D 舞台隨著幕次平滑推近、側拍與俯瞰。」
+        </p>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 2 輪｜把互動做進「物理真實感」</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「第 2 幕加入即時聚光燈軟陰影與可見光束，讓老師拖動方位角與高度滑桿時，後方展牆的影子即時變形，並可切換 3 種立體幾何雕塑。」
+        </p>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 3 輪｜注入課程靈魂：情緒光譜與策展質感</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「第 3 幕加入 4 種 SEL 情緒色溫，點擊時整座展廳的燈光、微塵粒子與提問文字一起變色；補上襯線雜誌排版、可開關的低頻合成音景與幕後抽屜。」
+        </p>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      const MOODS = {
+        calm: {
+          hex: "#5eead4",
+          rgb: "94, 234, 212",
+          bgHex: "#061117",
+          quote: "「當光線放慢，情緒也留出了呼吸的縫隙。」",
+          prompt: "課堂提問：什麼時候你的心像這道月光一樣安靜？當時周圍發生了什麼事？",
+          freq: [146.83, 220.0, 293.66]
+        },
+        anxious: {
+          hex: "#a78bfa",
+          rgb: "167, 139, 250",
+          bgHex: "#0b0818",
+          quote: "「影子被拉長時，我們往往只看見放大的擔憂。」",
+          prompt: "課堂提問：當一件事讓你感到巨大又壓迫，光線是從哪個距離照過來的？",
+          freq: [130.81, 196.0, 311.13]
+        },
+        warm: {
+          hex: "#f5b963",
+          rgb: "245, 185, 99",
+          bgHex: "#0b1220",
+          quote: "「換一個靠近的角度，輪廓就變得溫柔。」",
+          prompt: "課堂提問：最近有沒有哪件事，換個位置看之後突然沒那麼尖銳了？",
+          freq: [164.81, 246.94, 329.63]
+        },
+        courage: {
+          hex: "#fb7185",
+          rgb: "251, 113, 133",
+          bgHex: "#160a12",
+          quote: "「正視陰影的方向，就能找到光源所在。」",
+          prompt: "課堂提問：如果把陰影當成路標，你今天願意朝哪個方向踏出一步？",
+          freq: [174.61, 261.63, 392.0]
+        }
+      };
+
+      const ACTS = [
+        {
+          camPos: [-1.4, 2.2, 8.6],
+          lookAt: [-1.1, 1.3, 0],
+          azimuth: 24,
+          elevation: 3.6,
+          rotSpeed: 0.24,
+          sculpturePos: [1.3, 1.45, 0.3],
+          ringScale: 1.0
+        },
+        {
+          camPos: [-0.8, 2.0, 6.2],
+          lookAt: [0.35, 1.45, -1.2],
+          azimuth: 18,
+          elevation: 3.4,
+          rotSpeed: 0.14,
+          sculpturePos: [1.25, 1.4, 0.45],
+          ringScale: 1.08
+        },
+        {
+          camPos: [3.6, 1.75, 5.1],
+          lookAt: [0.4, 1.4, -0.3],
+          azimuth: -26,
+          elevation: 2.9,
+          rotSpeed: 0.2,
+          sculpturePos: [1.2, 1.42, 0.2],
+          ringScale: 1.15
+        },
+        {
+          camPos: [-2.6, 5.1, 10.2],
+          lookAt: [-0.6, 1.1, -0.4],
+          azimuth: 8,
+          elevation: 4.8,
+          rotSpeed: 0.38,
+          sculpturePos: [1.25, 1.55, 0.2],
+          ringScale: 1.32
+        }
+      ];
+
+      const state = {
+        act: 0,
+        shape: "cube",
+        mood: "warm",
+        azimuth: 18,
+        elevation: 3.4,
+        drawerOpen: false,
+        audioOn: false,
+        mouseX: 0,
+        mouseY: 0
+      };
+
+      /* ---------- Web Audio Ambient Soundscape ---------- */
+      let audioCtx = null;
+      let masterGain = null;
+      let droneOscs = [];
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return;
+        audioCtx = new AudioCtor();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.0001;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 420;
+        filter.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+
+        const freqs = MOODS[state.mood].freq;
+        droneOscs = freqs.map((f, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = idx === 0 ? "sine" : "triangle";
+          osc.frequency.value = f * 0.5;
+          gain.gain.value = idx === 0 ? 0.35 : 0.14;
+          osc.connect(gain);
+          gain.connect(filter);
+          osc.start();
+          return { osc, gain, ratio: idx === 0 ? 0.5 : 0.5 };
+        });
+      }
+
+      function setAudioEnabled(enabled) {
+        state.audioOn = enabled;
+        const btn = document.getElementById("btn-audio");
+        const icon = document.getElementById("audio-icon");
+        const label = document.getElementById("audio-label");
+        btn.setAttribute("aria-pressed", String(enabled));
+        icon.textContent = enabled ? "🔊" : "🔇";
+        label.textContent = enabled ? "音景：開" : "音景：關";
+
+        if (enabled) {
+          initAudio();
+          if (audioCtx && audioCtx.state === "suspended") {
+            audioCtx.resume();
+          }
+          if (masterGain && audioCtx) {
+            masterGain.gain.setTargetAtTime(0.085, audioCtx.currentTime, 0.45);
+          }
+        } else if (masterGain && audioCtx) {
+          masterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.25);
+        }
+      }
+
+      function playChime(freq) {
+        if (!state.audioOn || !audioCtx || !masterGain) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.015, now + 0.6);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.09, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(now);
+        osc.stop(now + 1.15);
+      }
+
+      function retuneDrone(freqs) {
+        if (!audioCtx || !droneOscs.length) return;
+        const now = audioCtx.currentTime;
+        droneOscs.forEach((item, idx) => {
+          const target = (freqs[idx] || freqs[0]) * item.ratio;
+          item.osc.frequency.setTargetAtTime(target, now, 0.6);
+        });
+      }
+
+      /* ---------- UI Sync ---------- */
+      const actPanels = Array.from(document.querySelectorAll(".act-panel"));
+      const dotButtons = Array.from(document.querySelectorAll(".dot-btn"));
+      const actCounter = document.getElementById("act-counter");
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+      const sliderAzimuth = document.getElementById("slider-azimuth");
+      const sliderElevation = document.getElementById("slider-elevation");
+      const readoutAzimuth = document.getElementById("readout-azimuth");
+      const readoutElevation = document.getElementById("readout-elevation");
+
+      function updateLightReadouts() {
+        const az = Math.round(state.azimuth);
+        readoutAzimuth.textContent = (az > 0 ? "+" : "") + az + "°";
+        readoutElevation.textContent = Number(state.elevation).toFixed(1) + " m";
+      }
+
+      function setAct(nextAct) {
+        const clamped = Math.max(0, Math.min(ACTS.length - 1, nextAct));
+        if (clamped === state.act && actPanels[clamped].classList.contains("is-active")) return;
+        state.act = clamped;
+
+        actPanels.forEach((panel, idx) => {
+          panel.classList.toggle("is-active", idx === clamped);
+        });
+        dotButtons.forEach((dot, idx) => {
+          dot.classList.toggle("is-active", idx === clamped);
+        });
+
+        actCounter.textContent = `0${clamped + 1} / 0${ACTS.length}`;
+        btnPrev.disabled = clamped === 0;
+        btnNext.disabled = clamped === ACTS.length - 1;
+
+        const actSpec = ACTS[clamped];
+        state.azimuth = actSpec.azimuth;
+        state.elevation = actSpec.elevation;
+        sliderAzimuth.value = String(actSpec.azimuth);
+        sliderElevation.value = String(actSpec.elevation);
+        updateLightReadouts();
+
+        const freqs = MOODS[state.mood].freq;
+        playChime(freqs[clamped % freqs.length] * 2);
+      }
+
+      function setMood(moodKey) {
+        const mood = MOODS[moodKey];
+        if (!mood) return;
+        state.mood = moodKey;
+
+        document.documentElement.style.setProperty("--accent", mood.hex);
+        document.documentElement.style.setProperty("--accent-rgb", mood.rgb);
+        document.documentElement.style.setProperty("--bg-mid", mood.bgHex);
+
+        document.querySelectorAll(".mood-btn").forEach((btn) => {
+          btn.classList.toggle("is-selected", btn.dataset.mood === moodKey);
+        });
+
+        document.getElementById("sel-quote").textContent = mood.quote;
+        document.getElementById("sel-prompt").textContent = mood.prompt;
+
+        retuneDrone(mood.freq);
+        playChime(mood.freq[2] * 1.5);
+        if (window.__updateThreeMood) window.__updateThreeMood(mood);
+      }
+
+      function setDrawer(open) {
+        state.drawerOpen = open;
+        document.getElementById("backstage-drawer").classList.toggle("is-open", open);
+        document.getElementById("drawer-backdrop").classList.toggle("is-open", open);
+        document.getElementById("btn-drawer").setAttribute("aria-expanded", String(open));
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+      }
+
+      /* ---------- Event Bindings ---------- */
+      btnPrev.addEventListener("click", () => setAct(state.act - 1));
+      btnNext.addEventListener("click", () => setAct(state.act + 1));
+      dotButtons.forEach((dot) => {
+        dot.addEventListener("click", () => setAct(Number(dot.dataset.goto)));
+      });
+
+      sliderAzimuth.addEventListener("input", (e) => {
+        state.azimuth = Number(e.target.value);
+        updateLightReadouts();
+      });
+
+      sliderElevation.addEventListener("input", (e) => {
+        state.elevation = Number(e.target.value);
+        updateLightReadouts();
+      });
+
+      document.querySelectorAll(".pill-btn[data-shape]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.shape = btn.dataset.shape;
+          document.querySelectorAll(".pill-btn[data-shape]").forEach((item) => {
+            item.classList.toggle("is-selected", item === btn);
+          });
+          if (window.__updateThreeShape) window.__updateThreeShape(state.shape);
+          playChime(MOODS[state.mood].freq[1] * 2);
+        });
+      });
+
+      document.querySelectorAll(".mood-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setMood(btn.dataset.mood));
+      });
+
+      document.getElementById("btn-audio").addEventListener("click", () => {
+        setAudioEnabled(!state.audioOn);
+      });
+      document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
+      document.getElementById("btn-drawer").addEventListener("click", () => setDrawer(!state.drawerOpen));
+      document.getElementById("btn-open-drawer-inline").addEventListener("click", () => setDrawer(true));
+      document.getElementById("btn-close-drawer").addEventListener("click", () => setDrawer(false));
+      document.getElementById("drawer-backdrop").addEventListener("click", () => setDrawer(false));
+
+      window.addEventListener("pointermove", (e) => {
+        state.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        state.mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+      });
+
+      window.addEventListener("keydown", (e) => {
+        const activeTag = document.activeElement?.tagName;
+        const isInteractiveInput = activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT";
+
+        if (e.key === "Escape" && state.drawerOpen) {
+          e.preventDefault();
+          setDrawer(false);
+          return;
+        }
+
+        if (e.key === "b" || e.key === "B") {
+          e.preventDefault();
+          setDrawer(!state.drawerOpen);
+          return;
+        }
+
+        if (e.key === "m" || e.key === "M") {
+          e.preventDefault();
+          setAudioEnabled(!state.audioOn);
+          return;
+        }
+
+        if (e.key === "f" || e.key === "F") {
+          e.preventDefault();
+          toggleFullscreen();
+          return;
+        }
+
+        if (state.drawerOpen) return;
+
+        if (e.key >= "1" && e.key <= "4") {
+          e.preventDefault();
+          setAct(Number(e.key) - 1);
+          return;
+        }
+
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown") {
+          if (activeTag === "INPUT" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) return;
+          e.preventDefault();
+          setAct(state.act + 1);
+          return;
+        }
+
+        if (e.key === " " && !isInteractiveInput && activeTag !== "BUTTON") {
+          e.preventDefault();
+          setAct(state.act + 1);
+          return;
+        }
+
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") {
+          if (activeTag === "INPUT" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) return;
+          e.preventDefault();
+          setAct(state.act - 1);
+        }
+      });
+
+      /* ---------- 3D Stage (Three.js) with 2D Canvas Fallback ---------- */
+      function startFallback2D() {
+        const threeCanvas = document.getElementById("stage-canvas");
+        const canvas = document.getElementById("fallback-canvas");
+        threeCanvas.style.display = "none";
+        canvas.style.display = "block";
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+          canvas.width = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
+          canvas.height = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        let t = 0;
+        function draw() {
+          t += 0.015;
+          const w = canvas.width;
+          const h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+
+          const mood = MOODS[state.mood];
+          const [r, g, b] = mood.rgb.split(",").map((n) => Number(n.trim()));
+          const cx = w * 0.66 + Math.sin(t) * 18 + state.mouseX * 26;
+          const cy = h * 0.46 + state.mouseY * 16;
+          const azRad = (state.azimuth * Math.PI) / 180;
+          const lx = cx + Math.sin(azRad) * w * 0.25;
+          const ly = h * (0.18 + (5.4 - state.elevation) * 0.04);
+
+          const beamGrad = ctx.createLinearGradient(lx, ly, cx - Math.sin(azRad) * 260, h * 0.92);
+          beamGrad.addColorStop(0, `rgba(${r},${g},${b},0.34)`);
+          beamGrad.addColorStop(1, `rgba(${r},${g},${b},0.02)`);
+          ctx.fillStyle = beamGrad;
+          ctx.beginPath();
+          ctx.moveTo(lx, ly);
+          ctx.lineTo(cx - Math.sin(azRad) * 320 - 180, h * 0.95);
+          ctx.lineTo(cx - Math.sin(azRad) * 320 + 220, h * 0.95);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(t * 0.4);
+          ctx.strokeStyle = `rgba(${r},${g},${b},0.75)`;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-72, -72, 144, 144);
+          ctx.restore();
+
+          requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      function startThreeStage() {
+        if (!window.THREE) {
+          startFallback2D();
+          return;
+        }
+
+        const canvas = document.getElementById("stage-canvas");
+        let renderer;
+        try {
+          renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        } catch (err) {
+          startFallback2D();
+          return;
+        }
+
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x060913, 0.055);
+
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 60);
+        camera.position.set(-1.4, 2.2, 8.6);
+        const currentLookAt = new THREE.Vector3(-1.1, 1.3, 0);
+
+        // Ambient & Rim Lighting
+        const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x05070d, 0.35);
+        scene.add(hemiLight);
+
+        const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.35);
+        rimLight.position.set(-5, 3, -4);
+        scene.add(rimLight);
+
+        // Main Museum Spotlight
+        const spotLight = new THREE.SpotLight(0xf5b963, 4.2, 26, Math.PI * 0.22, 0.58, 1.2);
+        spotLight.position.set(2.5, 3.6, 4.4);
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+        spotLight.shadow.camera.near = 0.8;
+        spotLight.shadow.camera.far = 20;
+        spotLight.shadow.bias = -0.0004;
+        scene.add(spotLight);
+        scene.add(spotLight.target);
+
+        // Volumetric Light Cone
+        const coneGeo = new THREE.ConeGeometry(2.6, 8.6, 36, 1, true);
+        coneGeo.translate(0, -4.3, 0);
+        coneGeo.rotateX(-Math.PI / 2);
+        const coneMat = new THREE.MeshBasicMaterial({
+          color: 0xf5b963,
+          transparent: true,
+          opacity: 0.065,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending
+        });
+        const lightCone = new THREE.Mesh(coneGeo, coneMat);
+        scene.add(lightCone);
+
+        // Floor & Back Projection Wall
+        const floorMat = new THREE.MeshStandardMaterial({
+          color: 0x0b101b,
+          roughness: 0.52,
+          metalness: 0.28
+        });
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(36, 28), floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const wallMat = new THREE.MeshStandardMaterial({
+          color: 0x101829,
+          roughness: 0.86,
+          metalness: 0.08
+        });
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(26, 14), wallMat);
+        backWall.position.set(0.4, 5.2, -3.2);
+        backWall.receiveShadow = true;
+        scene.add(backWall);
+
+        // Subtle Pedestal Grid Ring on Floor
+        const floorRingGeo = new THREE.RingGeometry(1.55, 1.58, 64);
+        const floorRingMat = new THREE.MeshBasicMaterial({
+          color: 0xf5b963,
+          transparent: true,
+          opacity: 0.22,
+          side: THREE.DoubleSide
+        });
+        const floorRing = new THREE.Mesh(floorRingGeo, floorRingMat);
+        floorRing.rotation.x = -Math.PI / 2;
+        floorRing.position.set(1.25, 0.01, 0.25);
+        scene.add(floorRing);
+
+        // Central Sculpture Group
+        const sculptureGroup = new THREE.Group();
+        sculptureGroup.position.set(1.3, 1.45, 0.3);
+        scene.add(sculptureGroup);
+
+        const sculptureMat = new THREE.MeshStandardMaterial({
+          color: 0xdbeafe,
+          roughness: 0.28,
+          metalness: 0.68
+        });
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: 0xf5b963,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.22
+        });
+
+        let mainMesh = null;
+        let innerWireMesh = null;
+
+        function buildSculpture(shapeKey) {
+          if (mainMesh) sculptureGroup.remove(mainMesh);
+          if (innerWireMesh) sculptureGroup.remove(innerWireMesh);
+
+          let geo;
+          if (shapeKey === "octahedron") {
+            geo = new THREE.OctahedronGeometry(0.95, 0);
+          } else if (shapeKey === "torusKnot") {
+            geo = new THREE.TorusKnotGeometry(0.62, 0.2, 120, 18);
+          } else {
+            geo = new THREE.BoxGeometry(1.25, 1.25, 1.25);
+          }
+
+          mainMesh = new THREE.Mesh(geo, sculptureMat);
+          mainMesh.castShadow = true;
+          mainMesh.receiveShadow = true;
+          sculptureGroup.add(mainMesh);
+
+          const outerGeo = new THREE.IcosahedronGeometry(1.32, 1);
+          innerWireMesh = new THREE.Mesh(outerGeo, wireMat);
+          sculptureGroup.add(innerWireMesh);
+        }
+
+        buildSculpture(state.shape);
+
+        // Orbital Metallic Ring
+        const orbitRing = new THREE.Mesh(
+          new THREE.TorusGeometry(1.68, 0.014, 12, 96),
+          new THREE.MeshBasicMaterial({ color: 0xf5b963, transparent: true, opacity: 0.45 })
+        );
+        orbitRing.rotation.x = Math.PI * 0.36;
+        sculptureGroup.add(orbitRing);
+
+        // Floating Dust Particles
+        const particleCount = 240;
+        const positions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * 14;
+          positions[i * 3 + 1] = Math.random() * 5.8 + 0.2;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        }
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({
+          color: 0xf5b963,
+          size: 0.045,
+          transparent: true,
+          opacity: 0.65,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+
+        const targetSpotColor = new THREE.Color(MOODS[state.mood].hex);
+        const targetFogColor = new THREE.Color(0x060913);
+
+        window.__updateThreeShape = (shapeKey) => buildSculpture(shapeKey);
+        window.__updateThreeMood = (mood) => {
+          targetSpotColor.set(mood.hex);
+          targetFogColor.set(mood.bgHex);
+        };
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const clock = new THREE.Clock();
+        const desiredCam = new THREE.Vector3();
+        const desiredLook = new THREE.Vector3();
+        const desiredScPos = new THREE.Vector3();
+        const desiredLightPos = new THREE.Vector3();
+
+        function animate() {
+          const dt = Math.min(clock.getDelta(), 0.05);
+          const elapsed = clock.getElapsedTime();
+          const actSpec = ACTS[state.act];
+
+          // Smooth Camera & Parallax
+          desiredCam.set(
+            actSpec.camPos[0] + state.mouseX * 0.28,
+            actSpec.camPos[1] - state.mouseY * 0.18,
+            actSpec.camPos[2]
+          );
+          camera.position.lerp(desiredCam, 0.055);
+
+          desiredLook.set(actSpec.lookAt[0], actSpec.lookAt[1], actSpec.lookAt[2]);
+          currentLookAt.lerp(desiredLook, 0.065);
+          camera.lookAt(currentLookAt);
+
+          // Sculpture Float & Rotation
+          desiredScPos.set(
+            actSpec.sculpturePos[0],
+            actSpec.sculpturePos[1] + Math.sin(elapsed * 1.1) * 0.08,
+            actSpec.sculpturePos[2]
+          );
+          sculptureGroup.position.lerp(desiredScPos, 0.06);
+
+          if (mainMesh) {
+            mainMesh.rotation.y += dt * actSpec.rotSpeed;
+            mainMesh.rotation.x += dt * actSpec.rotSpeed * 0.45;
+          }
+          if (innerWireMesh) {
+            innerWireMesh.rotation.y -= dt * 0.12;
+          }
+          orbitRing.rotation.z += dt * 0.25;
+          const ringScale = THREE.MathUtils.lerp(orbitRing.scale.x, actSpec.ringScale, 0.05);
+          orbitRing.scale.setScalar(ringScale);
+
+          // Spotlight Azimuth + Elevation + Mouse Subtle Pull
+          const azRad = ((state.azimuth + state.mouseX * 4.5) * Math.PI) / 180;
+          const radius = 5.4;
+          desiredLightPos.set(
+            sculptureGroup.position.x + Math.sin(azRad) * radius,
+            state.elevation - state.mouseY * 0.25,
+            sculptureGroup.position.z + Math.cos(azRad) * radius
+          );
+          spotLight.position.lerp(desiredLightPos, 0.09);
+          spotLight.target.position.copy(sculptureGroup.position);
+
+          lightCone.position.copy(spotLight.position);
+          lightCone.lookAt(sculptureGroup.position);
+
+          // Mood Color Interpolation
+          spotLight.color.lerp(targetSpotColor, 0.06);
+          coneMat.color.lerp(targetSpotColor, 0.06);
+          wireMat.color.lerp(targetSpotColor, 0.06);
+          orbitRing.material.color.lerp(targetSpotColor, 0.06);
+          floorRingMat.color.lerp(targetSpotColor, 0.06);
+          particleMat.color.lerp(targetSpotColor, 0.06);
+          scene.fog.color.lerp(targetFogColor, 0.05);
+
+          // Gentle Particle Drift
+          particles.rotation.y = elapsed * (state.act === 3 ? 0.06 : 0.02);
+
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      startThreeStage();
+    })();
+  </script>
+</body>
+</html>

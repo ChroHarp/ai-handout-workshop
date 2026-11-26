@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>血液循環｜互動教室到 CycleRun 3D 賽道</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <style>
+    :root {
+      --bg-top: #f7fafe;
+      --bg-bottom: #e2ecf8;
+      --oxy: #e11d48;
+      --oxy-rgb: 225, 29, 72;
+      --deoxy: #0284c7;
+      --deoxy-rgb: 2, 132, 199;
+      --gold: #d97706;
+      --gold-rgb: 217, 119, 6;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --glass-bg: rgba(255, 255, 255, 0.84);
+      --glass-border: rgba(15, 23, 42, 0.09);
+      --glass-shadow: 0 18px 46px rgba(15, 23, 42, 0.1), 0 2px 10px rgba(15, 23, 42, 0.04);
+      --serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+      --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 68% 36%, #ffffff 0%, var(--bg-top) 45%, var(--bg-bottom) 100%);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      transition: background 0.8s ease;
+    }
+
+    body[data-act="2"] {
+      background: radial-gradient(circle at 60% 45%, #fff7f8 0%, #ffe4e9 56%, #fecdd6 100%);
+    }
+
+    #stage-canvas,
+    #fallback-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #stage-canvas:active {
+      cursor: grabbing;
+    }
+
+    #fallback-canvas {
+      display: none;
+    }
+
+    .studio-wash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(ellipse at 72% 48%, transparent 38%, rgba(226, 236, 248, 0.35) 100%),
+        linear-gradient(90deg, rgba(247, 250, 254, 0.55) 0%, rgba(247, 250, 254, 0.18) 46%, transparent 72%);
+      transition: opacity 0.6s ease;
+    }
+
+    body[data-act="2"] .studio-wash {
+      opacity: 0.25;
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      pointer-events: none;
+    }
+
+    .hud-top > * {
+      pointer-events: auto;
+    }
+
+    .lab-badge {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--oxy);
+      box-shadow: 0 0 10px rgba(var(--oxy-rgb), 0.55);
+      animation: pulseBeat 0.83s infinite ease-in-out;
+    }
+
+    @keyframes pulseBeat {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      22% { transform: scale(1.42); opacity: 1; }
+      45% { transform: scale(0.95); opacity: 0.72; }
+    }
+
+    .act-counter {
+      font-family: var(--mono);
+      color: var(--oxy);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding-left: 10px;
+      border-left: 1px solid rgba(15, 23, 42, 0.14);
+    }
+
+    .hud-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-status {
+      font-size: 12px;
+      color: var(--deoxy);
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(var(--deoxy-rgb), 0.25);
+      padding: 6px 12px;
+      border-radius: 999px;
+      transition: opacity 0.5s ease;
+    }
+
+    .model-status.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hud-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .hud-btn:hover {
+      border-color: rgba(var(--deoxy-rgb), 0.45);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .hud-btn[aria-pressed="true"] {
+      border-color: rgba(var(--oxy-rgb), 0.5);
+      color: var(--oxy);
+      background: rgba(var(--oxy-rgb), 0.09);
+    }
+
+    /* Acts Stage */
+    .acts-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .act-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 72px clamp(20px, 4.5vw, 64px) 82px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px);
+      transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0.6s;
+      pointer-events: none;
+    }
+
+    .act-panel.is-active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .act-card {
+      pointer-events: auto;
+      max-width: 510px;
+      width: 100%;
+    }
+
+    .act-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--deoxy);
+      margin-bottom: 10px;
+    }
+
+    .act-eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    .act-title {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: clamp(26px, 3.3vw, 42px);
+      line-height: 1.24;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .act-lead {
+      font-size: clamp(14px, 1.4vw, 15.5px);
+      line-height: 1.72;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      max-width: 46ch;
+    }
+
+    .glass-box {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 16px 18px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* Act I: ECG, Chambers & X-ray Wall Toggle */
+    .ecg-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .ecg-canvas {
+      width: 100%;
+      height: 40px;
+      display: block;
+      flex: 1;
+    }
+
+    .bpm-tag {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--oxy);
+      background: rgba(var(--oxy-rgb), 0.1);
+      border: 1px solid rgba(var(--oxy-rgb), 0.25);
+      padding: 4px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .chamber-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .choice-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .choice-btn:hover {
+      background: #ffffff;
+      border-color: rgba(15, 23, 42, 0.22);
+      color: var(--text-primary);
+    }
+
+    .choice-btn.is-deoxy.is-selected {
+      background: rgba(var(--deoxy-rgb), 0.12);
+      border-color: var(--deoxy);
+      color: #0369a1;
+      font-weight: 700;
+    }
+
+    .choice-btn.is-oxy.is-selected {
+      background: rgba(var(--oxy-rgb), 0.11);
+      border-color: var(--oxy);
+      color: #be123c;
+      font-weight: 700;
+    }
+
+    .pill-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .xray-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      background: #fff;
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .xray-btn[aria-pressed="true"] {
+      background: rgba(var(--deoxy-rgb), 0.12);
+      border-color: var(--deoxy);
+      color: #0369a1;
+    }
+
+    .drag-tip {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .info-readout {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(241, 245, 249, 0.85);
+      border-left: 3px solid var(--deoxy);
+      transition: border-color 0.25s ease;
+    }
+
+    .info-readout strong {
+      color: var(--text-primary);
+    }
+
+    /* Act II: Dual Circulation */
+    .route-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .route-tab {
+      flex: 1 1 auto;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .route-tab.is-selected {
+      background: rgba(var(--gold-rgb), 0.14);
+      border-color: var(--gold);
+      color: #92400e;
+      font-weight: 700;
+    }
+
+    .route-points {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .route-point {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .route-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    /* Act III: Tunnel HUD */
+    .hud-dash {
+      display: grid;
+      gap: 12px;
+    }
+
+    .dash-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric-box {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(15, 23, 42, 0.09);
+    }
+
+    .metric-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .boost-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .boost-btn {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--oxy);
+      background: rgba(var(--oxy-rgb), 0.12);
+      color: #be123c;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .boost-btn[aria-pressed="true"] {
+      background: var(--oxy);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(var(--oxy-rgb), 0.32);
+    }
+
+    /* Act IV: Classroom Summary + 9:16 Phone Screen */
+    .act4-layout {
+      pointer-events: none;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) auto;
+      align-items: center;
+      gap: clamp(20px, 4vw, 52px);
+    }
+
+    .act4-copy {
+      pointer-events: auto;
+      max-width: 550px;
+    }
+
+    .layer-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .layer-chip {
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .layer-chip.is-highlight {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(var(--oxy-rgb), 0.45);
+    }
+
+    .layer-num {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--deoxy);
+      margin-bottom: 3px;
+    }
+
+    .layer-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .layer-desc {
+      display: block;
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+
+    .act4-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--gold-rgb), 0.55);
+      background: rgba(255, 255, 255, 0.92);
+      color: #92400e;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .cta-btn:hover {
+      background: #fffbeb;
+      transform: translateY(-1px);
+    }
+
+    .hint-note {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* 9:16 Phone Mockup Frame */
+    .phone-stage {
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .phone-frame {
+      position: relative;
+      height: min(74vh, 620px);
+      aspect-ratio: 9 / 16;
+      max-width: 90vw;
+      border-radius: 34px;
+      padding: 10px;
+      background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
+      box-shadow:
+        0 28px 70px rgba(15, 23, 42, 0.28),
+        0 0 0 1px rgba(15, 23, 42, 0.12);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #e2e8f0;
+    }
+
+    .phone-notch {
+      width: 52px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .phone-tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .phone-tool-btn,
+    .phone-tool-link {
+      font-family: var(--sans);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .phone-screen {
+      flex: 1;
+      width: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #0b1120;
+    }
+
+    .phone-screen iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    .phone-caption {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Bottom Navigation */
+    .hud-bottom {
+      position: fixed;
+      bottom: 18px;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      pointer-events: none;
+    }
+
+    .nav-pill {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav-arrow {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #fff;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .nav-arrow:hover:not(:disabled) {
+      border-color: var(--deoxy);
+      color: var(--text-primary);
+    }
+
+    .nav-arrow:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 4px;
+    }
+
+    .dot-btn {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
+    }
+
+    .dot-btn.is-active {
+      width: 28px;
+      background: var(--oxy);
+    }
+
+    .credit-tag {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      z-index: 15;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .backstage-fab {
+      position: fixed;
+      right: 24px;
+      bottom: 18px;
+      z-index: 22;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid rgba(var(--gold-rgb), 0.45);
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .backstage-fab:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    /* Backstage Drawer */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: rgba(15, 23, 42, 0.25);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .drawer-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      width: min(460px, calc(100vw - 32px));
+      z-index: 35;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: -20px 0 60px rgba(15, 23, 42, 0.2);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(calc(100% + 28px));
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .drawer-title {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .drawer-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .drawer-body {
+      padding: 18px 22px 24px;
+      overflow-y: auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .drawer-section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--deoxy);
+      margin-bottom: 6px;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tech-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      color: var(--text-secondary);
+    }
+
+    .prompt-step {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .prompt-step h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .prompt-step p {
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 860px) {
+      .hud-top { padding: 12px 14px; }
+      .lab-badge span.badge-text, .credit-tag { display: none; }
+      .act-panel { padding: 66px 14px 80px; overflow-y: auto; }
+      .act4-layout { grid-template-columns: 1fr; gap: 16px; }
+      .phone-frame { height: min(56vh, 460px); }
+      .backstage-fab { right: 14px; bottom: 70px; height: 36px; padding: 0 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body data-act="0">
+  <canvas id="stage-canvas" aria-hidden="true"></canvas>
+  <canvas id="fallback-canvas" aria-hidden="true"></canvas>
+  <div class="studio-wash" aria-hidden="true"></div>
+
+  <header class="hud-top">
+    <div class="lab-badge">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <span class="badge-text">BIO LAB · 血液循環互動教室</span>
+      <span class="act-counter" id="act-counter">01 / 04</span>
+    </div>
+    <div class="hud-actions">
+      <span class="model-status" id="model-status">載入 3D 解剖心臟模型…</span>
+      <button type="button" class="hud-btn" id="btn-audio" aria-pressed="false" title="切換心跳音景 (M)">
+        <span id="audio-icon">🔇</span>
+        <span id="audio-label">心跳音景：關</span>
+      </button>
+      <button type="button" class="hud-btn" id="btn-fullscreen" title="切換全螢幕 (F)">
+        <span>⛶</span>
+        <span>全螢幕</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="acts-stage">
+    <!-- ACT 01: 互動教室真實解剖心臟 -->
+    <section class="act-panel is-active" data-act="0" aria-label="第 01 幕：互動教室 3D 解剖心臟">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 01 · INTERACTIVE CLASSROOM</p>
+        <h1 class="act-title">把真實解剖心臟<br />搬上講台</h1>
+        <p class="act-lead">
+          採用 BodyParts3D 真實醫學解剖模型，依 72 BPM 律動搏動。點選四腔室即可轉向對應視角，選心室時會自動透視心室壁：
+        </p>
+        <div class="glass-box">
+          <div class="ecg-strip">
+            <canvas class="ecg-canvas" id="ecg-canvas" width="320" height="40" aria-hidden="true"></canvas>
+            <span class="bpm-tag" id="bpm-tag">72 BPM</span>
+          </div>
+          <div class="chamber-grid" role="group" aria-label="心臟四腔室檢視">
+            <button type="button" class="choice-btn is-deoxy is-selected" data-chamber="ra">
+              <span>右心房</span>
+              <span class="pill-dot" style="background: var(--deoxy);"></span>
+            </button>
+            <button type="button" class="choice-btn is-oxy" data-chamber="la">
+              <span>左心房（後側）</span>
+              <span class="pill-dot" style="background: var(--oxy);"></span>
+            </button>
+            <button type="button" class="choice-btn is-deoxy" data-chamber="rv">
+              <span>右心室腔</span>
+              <span class="pill-dot" style="background: var(--deoxy);"></span>
+            </button>
+            <button type="button" class="choice-btn is-oxy" data-chamber="lv">
+              <span>左心室腔</span>
+              <span class="pill-dot" style="background: var(--oxy);"></span>
+            </button>
+          </div>
+          <div class="toolbar-row">
+            <button type="button" class="xray-btn" id="btn-xray" aria-pressed="false">🩻 心室壁透視：關</button>
+            <span class="drag-tip">💡 右側模型可用滑鼠拖曳旋轉</span>
+          </div>
+          <div class="info-readout" id="chamber-info">
+            <strong>右心房（缺氧血）</strong>：接收上下大靜脈回流的缺氧血，經三尖瓣進入右心室，準備展開肺循環。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 02: 轉場 1 - 微觀雙循環軌道 -->
+    <section class="act-panel" data-act="1" aria-label="第 02 幕：微觀推進雙循環軌道">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 02 · TRANSITION 01 · DUAL CIRCULATION</p>
+        <h2 class="act-title">鏡頭推進：<br />看見兩條循環的分工</h2>
+        <p class="act-lead">
+          從教室講台推進至大血管交會處。紅血球沿著肺循環與體循環奔流，一鍵切換聚焦路徑與對應大血管：
+        </p>
+        <div class="glass-box">
+          <div class="route-tabs" role="group" aria-label="切換循環路徑">
+            <button type="button" class="route-tab is-selected" data-route="both">雙循環全覽</button>
+            <button type="button" class="route-tab" data-route="pulmonary">肺循環（藍 → 紅）</button>
+            <button type="button" class="route-tab" data-route="systemic">體循環（紅 → 藍）</button>
+          </div>
+          <div class="route-points" id="route-points">
+            <div class="route-point">
+              <span class="route-tag">ROUTE</span>
+              <span>心臟像雙幫浦：右心送往肺部換氣，左心透過主動脈弓送往全身供氧。</span>
+            </div>
+            <div class="route-point">
+              <span class="route-tag">VALVE</span>
+              <span>房室瓣與半月瓣維持單向推進，確保紅血球不逆流。</span>
+            </div>
+            <div class="route-point">
+              <span class="route-tag">EXCHANGE</span>
+              <span>經過微血管網完成氣體交換，血球顏色隨含氧量即時轉換。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 03: 轉場 2 - 鑽入動脈起跑線 -->
+    <section class="act-panel" data-act="2" aria-label="第 03 幕：鑽入血管進入起跑線">
+      <div class="act-card">
+        <p class="act-eyebrow">ACT 03 · TRANSITION 02 · TUNNEL DIVE</p>
+        <h2 class="act-title">第一人稱鑽入動脈：<br />抵達 CycleRun 起跑線</h2>
+        <p class="act-lead">
+          鏡頭直接穿進透亮的主動脈管腔。你不再只是看圖說故事的旁觀者，而是即將載著氧氣衝過瓣膜的紅血球駕駛員：
+        </p>
+        <div class="glass-box">
+          <div class="hud-dash">
+            <div class="dash-metrics">
+              <div class="metric-box">
+                <span class="metric-label">LOCATION</span>
+                <span class="metric-value" style="color: var(--oxy);">主動脈幹</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">HEART RATE</span>
+                <span class="metric-value" id="hud-bpm">72 BPM</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">MISSION</span>
+                <span class="metric-value" style="color: var(--gold);">氧氣衝刺</span>
+              </div>
+            </div>
+            <div class="boost-row">
+              <button type="button" class="boost-btn" id="btn-boost" aria-pressed="false">⚡ 模擬運動加速（72 → 118 BPM）</button>
+              <span class="hint-note">按 <strong>→</strong> 直接進入手機賽道</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 04: 9:16 手機螢幕實機 CycleRun -->
+    <section class="act-panel" data-act="3" aria-label="第 04 幕：手機螢幕實機 CycleRun 賽道">
+      <div class="act4-layout">
+        <div class="act4-copy">
+          <p class="act-eyebrow">ACT 04 · CYCLERUN LIVE IN CLASSROOM</p>
+          <h2 class="act-title">不離開簡報，<br />直接開進 CycleRun 賽道</h2>
+          <p class="act-lead">
+            把 3D 遊戲放進右側 <strong>9:16 手機比例螢幕</strong>，老師既能現場試玩操作，又不會被全螢幕吃掉簡報筆與切頁控制權。
+          </p>
+          <div class="layer-strip">
+            <div class="layer-chip">
+              <span class="layer-num">ACT 01</span>
+              <span class="layer-name">互動教室</span>
+              <span class="layer-desc">BodyParts3D 心臟與透視剖面</span>
+            </div>
+            <div class="layer-chip">
+              <span class="layer-num">ACT 02–03</span>
+              <span class="layer-name">雙空間轉場</span>
+              <span class="layer-desc">微觀導覽銜接動脈管腔進場</span>
+            </div>
+            <div class="layer-chip is-highlight">
+              <span class="layer-num">ACT 04</span>
+              <span class="layer-name">實機開跑</span>
+              <span class="layer-desc">切出本頁即自動卸載省資源</span>
+            </div>
+          </div>
+          <div class="act4-actions">
+            <button type="button" class="cta-btn" id="btn-open-drawer-inline">🔍 打開幕後拆解，看三輪 Prompt 設計</button>
+          </div>
+          <p class="hint-note">操作提示：點擊左側空白區或底部 <strong>←</strong> 按鈕即可切回上一幕（離開第 4 幕時自動清空賽道）。</p>
+        </div>
+
+        <div class="phone-stage">
+          <div class="phone-frame">
+            <div class="phone-topbar">
+              <span>CycleRun 3D</span>
+              <span class="phone-notch" aria-hidden="true"></span>
+              <div class="phone-tools">
+                <button type="button" class="phone-tool-btn" id="btn-reload-game" title="重新載入賽道">↻ 重載</button>
+                <a class="phone-tool-link" href="https://circulatory-run.vercel.app/index.html" target="_blank" rel="noreferrer">另開 ↗</a>
+              </div>
+            </div>
+            <div class="phone-screen">
+              <iframe
+                id="cyclerun-frame"
+                title="CycleRun 3D 血液循環跑酷賽道"
+                src="about:blank"
+                loading="lazy"
+                allow="autoplay; fullscreen"
+              ></iframe>
+            </div>
+          </div>
+          <p class="phone-caption">9:16 手機比例實機視窗 · 進入本幕自動載入</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="hud-bottom" aria-label="幕次切換">
+    <div class="nav-pill">
+      <button type="button" class="nav-arrow" id="btn-prev" aria-label="上一幕" title="上一幕 (←)">←</button>
+      <div class="dots" id="act-dots" role="tablist" aria-label="幕次指示點">
+        <button type="button" class="dot-btn is-active" data-goto="0" aria-label="第 1 幕"></button>
+        <button type="button" class="dot-btn" data-goto="1" aria-label="第 2 幕"></button>
+        <button type="button" class="dot-btn" data-goto="2" aria-label="第 3 幕"></button>
+        <button type="button" class="dot-btn" data-goto="3" aria-label="第 4 幕"></button>
+      </div>
+      <button type="button" class="nav-arrow" id="btn-next" aria-label="下一幕" title="下一幕 (→)">→</button>
+    </div>
+  </nav>
+
+  <span class="credit-tag">3D Heart: BodyParts3D, © DBCLS (CC BY 4.0)</span>
+
+  <button type="button" class="backstage-fab" id="btn-drawer" aria-expanded="false" aria-controls="backstage-drawer" title="拆解幕後 (B)">
+    <span>🔍</span>
+    <span>拆解幕後</span>
+  </button>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer" id="backstage-drawer" aria-label="拆解幕後">
+    <div class="drawer-header">
+      <h2 class="drawer-title">🔍 拆解幕後｜從教室走進賽道</h2>
+      <button type="button" class="drawer-close" id="btn-close-drawer" aria-label="關閉抽屜">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div>
+        <p class="drawer-section-label">ARCHITECTURE · 開源醫學模型 × 實機遊戲</p>
+        <div class="tech-tags">
+          <span class="tech-tag">BodyParts3D GLB (CC BY 4.0)</span>
+          <span class="tech-tag">心室壁動態透視</span>
+          <span class="tech-tag">CatmullRom 雙循環</span>
+          <span class="tech-tag">9:16 手機框生命週期</span>
+          <span class="tech-tag">Web Audio 心跳合成</span>
+        </div>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 1 輪｜把「換頁」改成「兩次空間轉場」</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「做一份 4 幕血液循環簡報。第 1 幕是互動教室講台上的 3D 心臟；第 2 幕鏡頭推近看肺循環與體循環紅血球；第 3 幕第一人稱鑽進動脈隧道，準備發車。」
+        </p>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 2 輪｜換上真實解剖模型 × 明亮教室採光</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「原本幾何心臟太粗糙、背景也太陰暗。改用開源 BodyParts3D 的 heart.glb 真實模型與三點攝影棚明亮採光，點選心室時自動把心室壁設為半透明透視，直接看到內部心室腔。」
+        </p>
+      </div>
+
+      <div class="prompt-step">
+        <h3>第 3 輪｜手機框取代全螢幕 × 實戰生命週期</h3>
+        <p>
+          <strong>Prompt 重點：</strong>「第 4 幕改在右側放 9:16 手機螢幕嵌入 CycleRun，保留左側與底部簡報筆切頁空間；只有進入第 4 幕才載入網址，離開就清空避免背景重複運行。」
+        </p>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      const CYCLERUN_URL = "https://circulatory-run.vercel.app/index.html";
+      const HEART_GLB_URL = "/models/heart.glb";
+
+      const CHAMBERS = {
+        ra: {
+          meshId: "right-atrium",
+          oxy: false,
+          xray: false,
+          yaw: -0.45,
+          pitch: 0.06,
+          html: "<strong>右心房（缺氧血）</strong>：接收上下大靜脈回流的缺氧血，經三尖瓣進入右心室，準備展開肺循環。"
+        },
+        rv: {
+          meshId: "right-ventricle",
+          oxy: false,
+          xray: true,
+          yaw: -0.22,
+          pitch: 0.02,
+          html: "<strong>右心室腔（缺氧血｜已開啟心室壁透視）</strong>：心肌收縮將缺氧血泵入肺動脈幹，送往肺泡進行氣體交換。"
+        },
+        la: {
+          meshId: "left-atrium",
+          oxy: true,
+          xray: false,
+          yaw: 2.35,
+          pitch: 0.24,
+          html: "<strong>左心房（充氧血｜後側視角）</strong>：位於心臟後上方，接收由肺靜脈返流的鮮紅充氧血，經二尖瓣送入左心室。"
+        },
+        lv: {
+          meshId: "left-ventricle",
+          oxy: true,
+          xray: true,
+          yaw: 0.48,
+          pitch: 0.04,
+          html: "<strong>左心室腔（充氧血｜已開啟心室壁透視）</strong>：擁有最厚實心肌，強力把充氧血推入主動脈，展開全身體循環！"
+        }
+      };
+
+      const ROUTES = {
+        both: [
+          ["ROUTE", "心臟像雙幫浦：右心送往肺部換氣，左心透過主動脈弓送往全身供氧。"],
+          ["VALVE", "房室瓣與半月瓣維持單向推進，確保紅血球不逆流。"],
+          ["EXCHANGE", "經過微血管網完成氣體交換，血球顏色隨含氧量即時轉換。"]
+        ],
+        pulmonary: [
+          ["START", "右心室收縮 → 肺動脈瓣 → 肺動脈幹（藍標高亮：缺氧血出發）。"],
+          ["ALVEOLI", "肺泡微血管網：排出 CO₂、結合 O₂，血液由海藍轉為珊瑚紅。"],
+          ["RETURN", "充氧血經由肺靜脈返回左心房，完成肺循環。"]
+        ],
+        systemic: [
+          ["START", "左心室強力收縮 → 主動脈瓣 → 升主動脈與主動脈弓（紅標高亮）。"],
+          ["TISSUE", "全身組織微血管：釋放氧氣與養分，帶走廢物，血液轉為缺氧。"],
+          ["RETURN", "經上下大靜脈返回右心房，進入下一次循環。"]
+        ]
+      };
+
+      const ACTS = [
+        {
+          camPos: [-1.8, 2.05, 7.2],
+          lookAt: [-0.85, 1.38, 0],
+          labOpacity: 1,
+          heartOpacity: 1,
+          loopsOpacity: 0.0,
+          tunnelOpacity: 0.0,
+          flowSpeed: 0.14
+        },
+        {
+          camPos: [-0.75, 1.85, 5.85],
+          lookAt: [0.65, 1.48, -0.25],
+          labOpacity: 0.35,
+          heartOpacity: 0.92,
+          loopsOpacity: 1.0,
+          tunnelOpacity: 0.06,
+          flowSpeed: 0.25
+        },
+        {
+          camPos: [-0.45, 1.45, 1.9],
+          lookAt: [0.15, 1.45, -14.0],
+          labOpacity: 0.0,
+          heartOpacity: 0.0,
+          loopsOpacity: 0.06,
+          tunnelOpacity: 1.0,
+          flowSpeed: 0.65
+        },
+        {
+          camPos: [-0.95, 1.55, 3.6],
+          lookAt: [-0.2, 1.45, -10.0],
+          labOpacity: 0.35,
+          heartOpacity: 0.28,
+          loopsOpacity: 0.22,
+          tunnelOpacity: 0.25,
+          flowSpeed: 0.2
+        }
+      ];
+
+      const state = {
+        act: 0,
+        chamber: "ra",
+        xray: false,
+        route: "both",
+        boost: false,
+        bpm: 72,
+        drawerOpen: false,
+        audioOn: false,
+        mouseX: 0,
+        mouseY: 0,
+        targetYaw: CHAMBERS.ra.yaw,
+        targetPitch: CHAMBERS.ra.pitch,
+        isDragging: false,
+        lastDragX: 0,
+        lastDragY: 0
+      };
+
+      /* ---------- Web Audio Heartbeat ---------- */
+      let audioCtx = null;
+      let masterGain = null;
+      let beatTimer = 0;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return;
+        audioCtx = new AudioCtor();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.0001;
+        masterGain.connect(audioCtx.destination);
+      }
+
+      function triggerBeatSound() {
+        if (!state.audioOn || !audioCtx || !masterGain) return;
+        const now = audioCtx.currentTime;
+        const playThump = (offset, startFreq, endFreq, peak) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(startFreq, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(endFreq, now + offset + 0.11);
+          gain.gain.setValueAtTime(0.0001, now + offset);
+          gain.gain.linearRampToValueAtTime(peak, now + offset + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.16);
+          osc.connect(gain);
+          gain.connect(masterGain);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.18);
+        };
+        playThump(0, 88, 42, 0.42);
+        playThump(0.18, 108, 50, 0.28);
+      }
+
+      function scheduleHeartbeat() {
+        window.clearTimeout(beatTimer);
+        if (!state.audioOn) return;
+        triggerBeatSound();
+        beatTimer = window.setTimeout(scheduleHeartbeat, Math.round(60000 / state.bpm));
+      }
+
+      function setAudioEnabled(enabled) {
+        state.audioOn = enabled;
+        const btn = document.getElementById("btn-audio");
+        document.getElementById("audio-icon").textContent = enabled ? "🔊" : "🔇";
+        document.getElementById("audio-label").textContent = enabled ? "心跳音景：開" : "心跳音景：關";
+        btn.setAttribute("aria-pressed", String(enabled));
+
+        if (enabled) {
+          initAudio();
+          if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+          if (masterGain && audioCtx) {
+            masterGain.gain.setTargetAtTime(state.act === 3 ? 0.06 : 0.22, audioCtx.currentTime, 0.25);
+          }
+          scheduleHeartbeat();
+        } else {
+          window.clearTimeout(beatTimer);
+          if (masterGain && audioCtx) {
+            masterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.2);
+          }
+        }
+      }
+
+      /* ---------- ECG Waveform (Act 01) ---------- */
+      const ecgCanvas = document.getElementById("ecg-canvas");
+      const ecgCtx = ecgCanvas.getContext("2d");
+      let ecgPhase = 0;
+
+      function ecgSample(p) {
+        const x = p % 1;
+        if (x > 0.12 && x < 0.18) return -0.18 * Math.sin(((x - 0.12) / 0.06) * Math.PI);
+        if (x >= 0.24 && x < 0.27) return 0.16;
+        if (x >= 0.27 && x < 0.31) return -0.95;
+        if (x >= 0.31 && x < 0.35) return 0.32;
+        if (x > 0.44 && x < 0.56) return -0.26 * Math.sin(((x - 0.44) / 0.12) * Math.PI);
+        return 0;
+      }
+
+      function drawECG() {
+        const w = ecgCanvas.width;
+        const h = ecgCanvas.height;
+        ecgPhase += (state.bpm / 60) * 0.012;
+        ecgCtx.clearRect(0, 0, w, h);
+        ecgCtx.strokeStyle = "rgba(225, 29, 72, 0.88)";
+        ecgCtx.lineWidth = 2;
+        ecgCtx.beginPath();
+        for (let px = 0; px < w; px += 2) {
+          const y = h * 0.58 + ecgSample(ecgPhase + (px / w) * 1.8) * (h * 0.42);
+          if (px === 0) ecgCtx.moveTo(px, y);
+          else ecgCtx.lineTo(px, y);
+        }
+        ecgCtx.stroke();
+        requestAnimationFrame(drawECG);
+      }
+      drawECG();
+
+      /* ---------- UI Sync & Phone Frame Lifecycle ---------- */
+      const actPanels = Array.from(document.querySelectorAll(".act-panel"));
+      const dotButtons = Array.from(document.querySelectorAll(".dot-btn"));
+      const actCounter = document.getElementById("act-counter");
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+      const gameFrame = document.getElementById("cyclerun-frame");
+      const btnXray = document.getElementById("btn-xray");
+
+      function syncPhoneFrame(actIndex) {
+        if (actIndex === 3) {
+          if (gameFrame.getAttribute("src") !== CYCLERUN_URL) {
+            gameFrame.setAttribute("src", CYCLERUN_URL);
+          }
+        } else if (gameFrame.getAttribute("src") !== "about:blank") {
+          gameFrame.setAttribute("src", "about:blank");
+        }
+      }
+
+      function setXray(enabled) {
+        state.xray = enabled;
+        btnXray.setAttribute("aria-pressed", String(enabled));
+        btnXray.textContent = enabled ? "🩻 心室壁透視：開" : "🩻 心室壁透視：關";
+      }
+
+      function setAct(nextAct) {
+        const clamped = Math.max(0, Math.min(ACTS.length - 1, nextAct));
+        state.act = clamped;
+        document.body.dataset.act = String(clamped);
+
+        actPanels.forEach((panel, idx) => panel.classList.toggle("is-active", idx === clamped));
+        dotButtons.forEach((dot, idx) => dot.classList.toggle("is-active", idx === clamped));
+        actCounter.textContent = `0${clamped + 1} / 0${ACTS.length}`;
+        btnPrev.disabled = clamped === 0;
+        btnNext.disabled = clamped === ACTS.length - 1;
+
+        if (clamped === 1) {
+          state.targetYaw = -0.15;
+          state.targetPitch = 0.08;
+        }
+
+        syncPhoneFrame(clamped);
+
+        if (masterGain && audioCtx && state.audioOn) {
+          masterGain.gain.setTargetAtTime(clamped === 3 ? 0.06 : 0.22, audioCtx.currentTime, 0.35);
+        }
+      }
+
+      function setChamber(key) {
+        const data = CHAMBERS[key];
+        if (!data) return;
+        state.chamber = key;
+        state.targetYaw = data.yaw;
+        state.targetPitch = data.pitch;
+        setXray(data.xray);
+
+        document.querySelectorAll(".choice-btn[data-chamber]").forEach((btn) => {
+          btn.classList.toggle("is-selected", btn.dataset.chamber === key);
+        });
+        const box = document.getElementById("chamber-info");
+        box.innerHTML = data.html;
+        box.style.borderLeftColor = data.oxy ? "var(--oxy)" : "var(--deoxy)";
+      }
+
+      function setRoute(routeKey) {
+        const points = ROUTES[routeKey];
+        if (!points) return;
+        state.route = routeKey;
+        document.querySelectorAll(".route-tab").forEach((btn) => {
+          btn.classList.toggle("is-selected", btn.dataset.route === routeKey);
+        });
+        const container = document.getElementById("route-points");
+        container.innerHTML = points
+          .map(
+            ([tag, text]) =>
+              `<div class="route-point"><span class="route-tag">${tag}</span><span>${text}</span></div>`
+          )
+          .join("");
+      }
+
+      function setBoost(enabled) {
+        state.boost = enabled;
+        state.bpm = enabled ? 118 : 72;
+        const btn = document.getElementById("btn-boost");
+        btn.setAttribute("aria-pressed", String(enabled));
+        btn.textContent = enabled ? "⚡ 恢復靜止心率（118 → 72 BPM）" : "⚡ 模擬運動加速（72 → 118 BPM）";
+        document.getElementById("hud-bpm").textContent = `${state.bpm} BPM`;
+        document.getElementById("bpm-tag").textContent = `${state.bpm} BPM`;
+      }
+
+      function setDrawer(open) {
+        state.drawerOpen = open;
+        document.getElementById("backstage-drawer").classList.toggle("is-open", open);
+        document.getElementById("drawer-backdrop").classList.toggle("is-open", open);
+        document.getElementById("btn-drawer").setAttribute("aria-expanded", String(open));
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+      }
+
+      btnPrev.addEventListener("click", () => setAct(state.act - 1));
+      btnNext.addEventListener("click", () => setAct(state.act + 1));
+      dotButtons.forEach((dot) => dot.addEventListener("click", () => setAct(Number(dot.dataset.goto))));
+      document.querySelectorAll(".choice-btn[data-chamber]").forEach((btn) => {
+        btn.addEventListener("click", () => setChamber(btn.dataset.chamber));
+      });
+      btnXray.addEventListener("click", () => setXray(!state.xray));
+      document.querySelectorAll(".route-tab").forEach((btn) => {
+        btn.addEventListener("click", () => setRoute(btn.dataset.route));
+      });
+      document.getElementById("btn-boost").addEventListener("click", () => setBoost(!state.boost));
+      document.getElementById("btn-audio").addEventListener("click", () => setAudioEnabled(!state.audioOn));
+      document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
+      document.getElementById("btn-drawer").addEventListener("click", () => setDrawer(!state.drawerOpen));
+      document.getElementById("btn-open-drawer-inline").addEventListener("click", () => setDrawer(true));
+      document.getElementById("btn-close-drawer").addEventListener("click", () => setDrawer(false));
+      document.getElementById("drawer-backdrop").addEventListener("click", () => setDrawer(false));
+      document.getElementById("btn-reload-game").addEventListener("click", () => {
+        gameFrame.setAttribute("src", "about:blank");
+        window.setTimeout(() => {
+          if (state.act === 3) gameFrame.setAttribute("src", CYCLERUN_URL);
+        }, 60);
+      });
+
+      const stageCanvas = document.getElementById("stage-canvas");
+      stageCanvas.addEventListener("pointerdown", (e) => {
+        state.isDragging = true;
+        state.lastDragX = e.clientX;
+        state.lastDragY = e.clientY;
+      });
+      window.addEventListener("pointerup", () => {
+        state.isDragging = false;
+      });
+      window.addEventListener("pointermove", (e) => {
+        state.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        state.mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+        if (state.isDragging) {
+          const dx = e.clientX - state.lastDragX;
+          const dy = e.clientY - state.lastDragY;
+          state.lastDragX = e.clientX;
+          state.lastDragY = e.clientY;
+          state.targetYaw += dx * 0.01;
+          state.targetPitch = Math.max(-0.55, Math.min(0.65, state.targetPitch + dy * 0.008));
+        }
+      });
+
+      window.addEventListener("keydown", (e) => {
+        const activeTag = document.activeElement?.tagName;
+        if (e.key === "Escape" && state.drawerOpen) {
+          e.preventDefault();
+          setDrawer(false);
+          return;
+        }
+        if (e.key === "b" || e.key === "B") {
+          e.preventDefault();
+          setDrawer(!state.drawerOpen);
+          return;
+        }
+        if (e.key === "m" || e.key === "M") {
+          e.preventDefault();
+          setAudioEnabled(!state.audioOn);
+          return;
+        }
+        if (e.key === "f" || e.key === "F") {
+          e.preventDefault();
+          toggleFullscreen();
+          return;
+        }
+        if (state.drawerOpen) return;
+
+        if (e.key >= "1" && e.key <= "4") {
+          e.preventDefault();
+          setAct(Number(e.key) - 1);
+          return;
+        }
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown") {
+          e.preventDefault();
+          setAct(state.act + 1);
+          return;
+        }
+        if (e.key === " " && activeTag !== "BUTTON" && activeTag !== "A" && activeTag !== "INPUT") {
+          e.preventDefault();
+          setAct(state.act + 1);
+          return;
+        }
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") {
+          e.preventDefault();
+          setAct(state.act - 1);
+        }
+      });
+
+      /* ---------- 2D Fallback ---------- */
+      function startFallback2D() {
+        const canvas = document.getElementById("fallback-canvas");
+        stageCanvas.style.display = "none";
+        canvas.style.display = "block";
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+          canvas.width = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
+          canvas.height = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        let t = 0;
+        function draw() {
+          t += 0.02;
+          const w = canvas.width;
+          const h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+          const cx = w * 0.68;
+          const cy = h * 0.5;
+          for (let i = 0; i < 6; i++) {
+            const radius = ((t * 80 + i * 64) % 380) + 40;
+            ctx.strokeStyle = `rgba(225, 29, 72, ${Math.max(0, 0.28 - radius / 1400)})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      /* ---------- Three.js Bright Classroom + BodyParts3D GLB Heart ---------- */
+      function startThreeStage() {
+        if (!window.THREE) {
+          startFallback2D();
+          return;
+        }
+        let renderer;
+        try {
+          renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        } catch (err) {
+          startFallback2D();
+          return;
+        }
+
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.08;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0xeef4fb, 0.032);
+
+        const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 80);
+        camera.position.set(-1.8, 2.05, 7.2);
+        const currentLookAt = new THREE.Vector3(-0.85, 1.38, 0);
+
+        /* Bright 3-Point Medical Studio Lighting */
+        scene.add(new THREE.HemisphereLight(0xffffff, 0xcbd5e1, 1.15));
+
+        const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.15);
+        keyLight.position.set(4.2, 6.0, 5.2);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.72);
+        fillLight.position.set(-5.0, 3.2, 3.4);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0xfecdd3, 0.65);
+        rimLight.position.set(0.8, 3.5, -5.0);
+        scene.add(rimLight);
+
+        /* 1. Bright Classroom Lab Pedestal */
+        const labGroup = new THREE.Group();
+        scene.add(labGroup);
+
+        const gridHelper = new THREE.GridHelper(28, 36, 0x94a3b8, 0xcbd5e1);
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.45;
+        labGroup.add(gridHelper);
+
+        const podium = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.42, 1.62, 0.14, 64),
+          new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25, metalness: 0.12, transparent: true, opacity: 0.92 })
+        );
+        podium.position.set(1.25, 0.07, 0);
+        labGroup.add(podium);
+
+        const podiumRingMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+        const podiumRing = new THREE.Mesh(new THREE.RingGeometry(1.44, 1.48, 64), podiumRingMat);
+        podiumRing.rotation.x = -Math.PI / 2;
+        podiumRing.position.set(1.25, 0.15, 0);
+        labGroup.add(podiumRing);
+
+        /* 2. Anatomical Heart Pivot & GLB Loader */
+        const heartPivot = new THREE.Group();
+        heartPivot.position.set(1.25, 1.62, 0);
+        scene.add(heartPivot);
+
+        const heartBeatGroup = new THREE.Group();
+        heartPivot.add(heartBeatGroup);
+
+        const anatomyParts = {};
+        const modelStatus = document.getElementById("model-status");
+
+        if (THREE.GLTFLoader) {
+          const loader = new THREE.GLTFLoader();
+          loader.load(
+            HEART_GLB_URL,
+            (gltf) => {
+              const root = gltf.scene;
+              const box = new THREE.Box3().setFromObject(root);
+              const size = new THREE.Vector3();
+              const center = new THREE.Vector3();
+              box.getSize(size);
+              box.getCenter(center);
+
+              const maxDim = Math.max(size.x, size.y, size.z) || 1;
+              const normScale = 2.65 / maxDim;
+              root.scale.setScalar(normScale);
+              root.position.sub(center.multiplyScalar(normScale));
+
+              root.traverse((child) => {
+                if (child.isMesh) {
+                  const key = child.name || child.parent?.name || "";
+                  const mat = child.material ? child.material.clone() : new THREE.MeshStandardMaterial({ color: 0xd06a64 });
+                  mat.transparent = true;
+                  mat.opacity = 1.0;
+                  mat.roughness = Math.min(mat.roughness ?? 0.45, 0.48);
+                  mat.metalness = 0.06;
+                  child.material = mat;
+                  if (key) {
+                    if (!anatomyParts[key]) anatomyParts[key] = [];
+                    anatomyParts[key].push({
+                      mesh: child,
+                      mat,
+                      baseColor: mat.color.clone()
+                    });
+                  }
+                }
+              });
+
+              heartBeatGroup.add(root);
+              modelStatus.textContent = "BodyParts3D 模型就緒";
+              window.setTimeout(() => modelStatus.classList.add("is-hidden"), 1800);
+            },
+            undefined,
+            () => {
+              modelStatus.textContent = "模型載入失敗，切換簡易示意";
+            }
+          );
+        }
+
+        /* 3. Dual Circulation Curves Aligned to Great Vessel Openings (Zero Clipping) */
+        const loopsGroup = new THREE.Group();
+        heartPivot.add(loopsGroup);
+
+        const pulmCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.26, 0.86, 0.16),
+          new THREE.Vector3(0.85, 1.38, 0.18),
+          new THREE.Vector3(1.65, 1.32, -0.25),
+          new THREE.Vector3(1.55, 0.65, -0.82),
+          new THREE.Vector3(0.95, 0.22, -0.88),
+          new THREE.Vector3(0.38, 0.12, -0.72)
+        ], false);
+
+        const sysCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.12, 0.78, -1.15),
+          new THREE.Vector3(0.25, -0.35, -1.48),
+          new THREE.Vector3(0.10, -1.68, -1.15),
+          new THREE.Vector3(-1.25, -1.72, -0.55),
+          new THREE.Vector3(-1.72, -0.45, -0.10),
+          new THREE.Vector3(-1.48, 1.05, 0.04),
+          new THREE.Vector3(-0.98, 1.56, 0.04),
+          new THREE.Vector3(-0.68, 1.18, 0.04)
+        ], false);
+
+        const pulmTubeMat = new THREE.MeshStandardMaterial({
+          color: 0x0284c7,
+          transparent: true,
+          opacity: 0.14,
+          roughness: 0.18,
+          metalness: 0.08,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+        const sysTubeMat = new THREE.MeshStandardMaterial({
+          color: 0xe11d48,
+          transparent: true,
+          opacity: 0.14,
+          roughness: 0.18,
+          metalness: 0.08,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+        const pulmTube = new THREE.Mesh(new THREE.TubeGeometry(pulmCurve, 96, 0.115, 16, false), pulmTubeMat);
+        const sysTube = new THREE.Mesh(new THREE.TubeGeometry(sysCurve, 110, 0.125, 16, false), sysTubeMat);
+        pulmTube.renderOrder = 2;
+        sysTube.renderOrder = 2;
+        loopsGroup.add(pulmTube);
+        loopsGroup.add(sysTube);
+
+        const rbcGeo = new THREE.CylinderGeometry(0.052, 0.052, 0.02, 14);
+        rbcGeo.rotateX(Math.PI * 0.35);
+        const rbcCells = [];
+        for (let i = 0; i < 120; i++) {
+          const isPulm = i < 50;
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0xe11d48,
+            emissive: 0x9f1239,
+            emissiveIntensity: 0.22,
+            roughness: 0.35,
+            transparent: true,
+            opacity: 0.92
+          });
+          const cell = new THREE.Mesh(rbcGeo, mat);
+          cell.renderOrder = 1;
+          loopsGroup.add(cell);
+          rbcCells.push({
+            mesh: cell,
+            curve: isPulm ? pulmCurve : sysCurve,
+            isPulm,
+            t: (i / (isPulm ? 50 : 70)) % 1,
+            speed: isPulm ? 0.14 : 0.11,
+            wobble: Math.random() * Math.PI * 2
+          });
+        }
+
+        /* 4. Bright Luminous Arterial Tunnel (Act 03) */
+        const tunnelGroup = new THREE.Group();
+        scene.add(tunnelGroup);
+        const tunnelRings = [];
+        const ringCount = 30;
+        for (let i = 0; i < ringCount; i++) {
+          const mat = new THREE.MeshBasicMaterial({
+            color: i % 3 === 0 ? 0xf59e0b : 0xf43f5e,
+            transparent: true,
+            opacity: 0.0
+          });
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(2.35, 0.042, 10, 56), mat);
+          ring.position.set(0.1, 1.45, 2 - i * 1.4);
+          tunnelGroup.add(ring);
+          tunnelRings.push({ mesh: ring, mat });
+        }
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const clock = new THREE.Clock();
+        const desiredCam = new THREE.Vector3();
+        const desiredLook = new THREE.Vector3();
+        const oxyColor = new THREE.Color(0xe11d48);
+        const deoxyColor = new THREE.Color(0x0284c7);
+        const studioFogColor = new THREE.Color(0xeef4fb);
+        const tunnelFogColor = new THREE.Color(0xffe4e9);
+        const highlightOxy = new THREE.Color(0xf43f5e);
+        const highlightDeoxy = new THREE.Color(0x0ea5e9);
+
+        let curLabOp = 1;
+        let curHeartOp = 1;
+        let curLoopsOp = 0.0;
+        let curTunnelOp = 0;
+        const tangentVec = new THREE.Vector3();
+        const lookAheadPt = new THREE.Vector3();
+
+        function animate() {
+          const dt = Math.min(clock.getDelta(), 0.05);
+          const elapsed = clock.getElapsedTime();
+          const actSpec = ACTS[state.act];
+
+          desiredCam.set(
+            actSpec.camPos[0] + state.mouseX * 0.2,
+            actSpec.camPos[1] - state.mouseY * 0.14,
+            actSpec.camPos[2]
+          );
+          camera.position.lerp(desiredCam, 0.055);
+          desiredLook.set(actSpec.lookAt[0], actSpec.lookAt[1], actSpec.lookAt[2]);
+          currentLookAt.lerp(desiredLook, 0.065);
+          camera.lookAt(currentLookAt);
+
+          scene.fog.color.lerp(state.act === 2 ? tunnelFogColor : studioFogColor, 0.05);
+
+          curLabOp = THREE.MathUtils.lerp(curLabOp, actSpec.labOpacity, 0.06);
+          curHeartOp = THREE.MathUtils.lerp(curHeartOp, actSpec.heartOpacity, 0.06);
+          curLoopsOp = THREE.MathUtils.lerp(curLoopsOp, actSpec.loopsOpacity, 0.06);
+          curTunnelOp = THREE.MathUtils.lerp(curTunnelOp, actSpec.tunnelOpacity, 0.06);
+
+          gridHelper.material.opacity = curLabOp * 0.45;
+          podium.material.opacity = curLabOp * 0.92;
+          podiumRingMat.opacity = curLabOp * 0.45;
+          podium.visible = curLabOp > 0.04;
+
+          /* Anatomical Heart Pulse & Rotation */
+          const beatFreq = state.bpm / 60;
+          const pulse = 1 + Math.pow(Math.max(0, Math.sin(elapsed * Math.PI * beatFreq)), 6) * 0.065;
+          heartBeatGroup.scale.setScalar(pulse);
+          const idleFloat = state.act === 1 ? Math.sin(elapsed * 0.4) * 0.2 : Math.sin(elapsed * 0.45) * 0.06;
+          heartPivot.rotation.y = THREE.MathUtils.lerp(heartPivot.rotation.y, state.targetYaw + idleFloat, 0.07);
+          heartPivot.rotation.x = THREE.MathUtils.lerp(heartPivot.rotation.x, state.targetPitch, 0.07);
+          heartPivot.visible = curHeartOp > 0.03;
+
+          /* Per-structure Highlight & Ventricular Wall X-ray Transparency */
+          const activeChamberMesh = CHAMBERS[state.chamber]?.meshId;
+          const activeIsOxy = CHAMBERS[state.chamber]?.oxy;
+
+          Object.entries(anatomyParts).forEach(([partName, entries]) => {
+            let targetOpacity = curHeartOp;
+            let emissiveIntensity = 0.0;
+            let emissiveColor = highlightOxy;
+
+            if (state.act === 0) {
+              if (partName === "ventricular-wall" && state.xray) {
+                targetOpacity = curHeartOp * 0.22;
+              }
+              if (partName === activeChamberMesh) {
+                emissiveIntensity = 0.42;
+                emissiveColor = activeIsOxy ? highlightOxy : highlightDeoxy;
+              }
+            } else if (state.act === 1) {
+              if (state.route === "pulmonary" && partName === "pulmonary-trunk") {
+                emissiveIntensity = 0.45;
+                emissiveColor = highlightDeoxy;
+              } else if (state.route === "systemic" && (partName === "ascending-aorta" || partName === "aortic-arch")) {
+                emissiveIntensity = 0.45;
+                emissiveColor = highlightOxy;
+              }
+            }
+
+            entries.forEach(({ mat }) => {
+              mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, 0.12);
+              mat.depthWrite = mat.opacity > 0.65;
+              mat.emissive.lerp(emissiveColor, 0.15);
+              mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, emissiveIntensity, 0.12);
+            });
+          });
+
+          /* Dual Circulation Highlight & Flowing RBCs */
+          const speedBoost = state.boost ? 1.65 : 1.0;
+          const pulmGain = state.act === 1 && state.route === "systemic" ? 0.25 : 1.0;
+          const sysGain = state.act === 1 && state.route === "pulmonary" ? 0.25 : 1.0;
+          pulmTubeMat.opacity = curLoopsOp * 0.14 * pulmGain;
+          sysTubeMat.opacity = curLoopsOp * 0.14 * sysGain;
+          loopsGroup.visible = curLoopsOp > 0.03;
+
+          for (let i = 0; i < rbcCells.length; i++) {
+            const item = rbcCells[i];
+            item.t = (item.t + dt * item.speed * actSpec.flowSpeed * 4.5 * speedBoost) % 1;
+            const pt = item.curve.getPointAt(item.t);
+            item.curve.getTangentAt(item.t, tangentVec);
+            item.mesh.position.copy(pt);
+            lookAheadPt.copy(pt).add(tangentVec);
+            item.mesh.lookAt(lookAheadPt);
+            item.mesh.rotateZ(elapsed * 1.6 + item.wobble);
+
+            const edgeFade = THREE.MathUtils.smoothstep(item.t, 0.0, 0.07) * (1 - THREE.MathUtils.smoothstep(item.t, 0.93, 1.0));
+            item.mesh.scale.setScalar(0.35 + 0.65 * edgeFade);
+
+            let oxyRatio;
+            if (item.isPulm) {
+              oxyRatio = THREE.MathUtils.smoothstep(item.t, 0.35, 0.68);
+            } else {
+              oxyRatio = 1 - THREE.MathUtils.smoothstep(item.t, 0.38, 0.68);
+            }
+            item.mesh.material.color.lerpColors(deoxyColor, oxyColor, oxyRatio);
+            item.mesh.material.emissive.lerpColors(deoxyColor, oxyColor, oxyRatio);
+            item.mesh.material.opacity = curLoopsOp * edgeFade * (item.isPulm ? pulmGain : sysGain);
+          }
+
+          /* Luminous Arterial Tunnel Rings */
+          const tunnelVel = (state.act === 2 ? 15 : 5) * speedBoost;
+          tunnelGroup.visible = curTunnelOp > 0.02;
+          for (let i = 0; i < tunnelRings.length; i++) {
+            const r = tunnelRings[i];
+            r.mesh.position.z += dt * tunnelVel;
+            if (r.mesh.position.z > 4) r.mesh.position.z -= ringCount * 1.4;
+            const depthFade = THREE.MathUtils.clamp(1 - Math.abs(r.mesh.position.z + 10) / 24, 0.1, 1);
+            r.mat.opacity = curTunnelOp * 0.45 * depthFade;
+            r.mesh.rotation.z = elapsed * 0.25 + i * 0.12;
+          }
+
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      startThreeStage();
+    })();
+  </script>
+</body>
+</html>
